@@ -10,7 +10,6 @@ import SwiftUI
 struct ContentView: View {
     
     @EnvironmentObject var viewModel : ViewModel
-    @Environment(\.modelContext) var context
         
     var yOffset : CGFloat = 70.0
     
@@ -49,6 +48,7 @@ struct ContentView: View {
                 CreateGameView()
             } label: {
                 FullWidthButton(text: "Create Game")
+                    .padding(.horizontal)
             }
         }
         

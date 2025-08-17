@@ -60,7 +60,7 @@ struct EditRoundSheet: View {
                         // get the score at that index in scoreBuffers (which we have updated) and try to cast it to an Int
                         if let score = Int(scoreBuffers[index]) {
                             // assign the player at that index the corresponding score at that index, for the round we are on (roundIndex)
-                            game.players[index].scores.values[roundIndex] = score
+                            game.players[index].scores[roundIndex] = score
                         } else {
                             // error
                             errorMessage = "Unable to update scores"
@@ -107,18 +107,18 @@ struct EditRoundSheet: View {
             players: [
                 Player(
                     name: "Rob",
-                    scores: intArray(values: [0, 0, 25]),
-                    runningScores: intArray(values: [])
+                    scores: [0, 0, 25],
+                    runningScores: []
                 ),
                 Player(
                     name: "Flora",
-                    scores: intArray(values: [5, 3, 15]),
-                    runningScores: intArray(values: [])
+                    scores: [5, 3, 15],
+                    runningScores: []
                 ),
                 Player(
                     name: "Vnesh",
-                    scores: intArray(values: [9, 12, 0]),
-                    runningScores: intArray(values: [])
+                    scores: [9, 12, 0],
+                    runningScores: []
                 )
             ],
             halving: true

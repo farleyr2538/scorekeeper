@@ -11,6 +11,7 @@ import SwiftData
 struct NewRoundSheet: View {
     
     @EnvironmentObject private var viewModel : ViewModel
+    @Environment(\.modelContext) var context
     
     @Bindable var currentGame : Game
     
@@ -24,10 +25,7 @@ struct NewRoundSheet: View {
     @State var isError : Bool = false
     
     // focus
-    @FocusState private var focusedField : Field?
-    enum Field : Hashable {
-        case field(Int)
-    }
+    @FocusState private var focusedField : Int?
     
     var numberFormatter = NumberFormatter()
     
@@ -50,6 +48,7 @@ struct NewRoundSheet: View {
                         .frame(width: 75)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
+                        .focused($focusedField, equals: index)
                     }
                     .frame(width: 200)
                 }
@@ -73,23 +72,30 @@ struct NewRoundSheet: View {
                                     score: thisRoundsScore,
                                     halving: currentGame.halving
                                 )
+                                currentGame.roundsPlayed += 1
                                 
-                                // dismiss sheet
-                                newRoundSheetShowing = false
                             } else {
                                 errorMessage = "Unable to convert \(currentGame.players[index].name)'s score: \(scoreBuffers[index]). Please try again."
                                 isError = true
                             }
-                            
-                            
                         }
+                        
+                        do {
+                            try context.save()
+                            print("game saved after round added")
+                        } catch {
+                            print("failed to save game after round added")
+                        }
+                        
+                        // dismiss sheet
+                        if !isError {
+                            newRoundSheetShowing = false
+                        }
+                        
                     }
                 }
                 .padding()
                 .buttonStyle(.bordered)
-                .onAppear {
-                    focusedField = .field(0)
-                }
             } else {
                 ProgressView("Loading scores...")
                     .onAppear {
@@ -99,6 +105,9 @@ struct NewRoundSheet: View {
         }
         .padding(.top, 20)
         .padding(.horizontal)
+        .onAppear {
+            focusedField = 0
+        }
         .alert("Error", isPresented: $isError) {
             Button("OK") {}
         } message: {
@@ -115,18 +124,18 @@ struct NewRoundSheet: View {
             players: [
                 Player(
                     name: "Rob",
-                    scores: intArray(values: [0, 0, 25]),
-                    runningScores: intArray(values: [])
+                    scores:[0, 0, 25],
+                    runningScores: []
                 ),
                 Player(
                     name: "Flora",
-                    scores: intArray(values: [5, 3, 15]),
-                    runningScores: intArray(values: [])
+                    scores: [5, 3, 15],
+                    runningScores: []
                 ),
                 Player(
                     name: "Vnesh",
-                    scores: intArray(values: [9, 12, 0]),
-                    runningScores: intArray(values: [])
+                    scores: [],
+                    runningScores: []
                 )
             ],
             halving: true

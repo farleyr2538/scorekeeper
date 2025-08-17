@@ -23,6 +23,9 @@ struct GameHistory: View {
     }
     
     var body: some View {
+        
+        // Text("number of past games: \(pastGames.count)")
+        
         Group {
             if pastGames.isEmpty {
                 Text("No past games")
@@ -54,5 +57,5 @@ struct GameHistory: View {
 
 #Preview {
     GameHistory()
-        .modelContainer(for: Game.self, inMemory: true)
+        .modelContainer(for: [Game.self, Player.self])
 }

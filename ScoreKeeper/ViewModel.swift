@@ -7,52 +7,8 @@
 
 import Foundation
 import SwiftData
+import Combine
 
-@Model
-class Player {
-    
-    // var uuid = UUID()
-    
-    var name : String
-    var scores : intArray
-    var runningScores : intArray 
-    var total : Int {
-        scores.values.reduce(0, +)
-    }
-    var average : Double {
-        Double(total) / Double(scores.values.count)
-    }
-    
-    init(name: String, scores: intArray, runningScores: intArray) {
-        self.name = name
-        self.scores = scores
-        self.runningScores = runningScores
-    }
-}
-
-@Model
-class Game {
-    
-    // var uuid = UUID()
-    
-    var players : [Player]
-    
-    var date = Date()
-    var halving = true
-    var lowestWins = true
-    
-    init(players: [Player], halving: Bool, lowestWins : Bool = true, date : Date = Date()) {
-        self.players = players
-        self.halving = halving
-        
-        self.date = date
-        self.lowestWins = lowestWins
-    }
-}
-
-struct intArray : Codable {
-    var values: [Int]
-}
 
 enum gameError : Error {
     case tooManyPlayers
@@ -61,7 +17,38 @@ enum gameError : Error {
 
 class ViewModel : ObservableObject {
     
-    var allPlayers : [String] = []
+    private let userDefaultsKey = "allPlayers"
+    
+    @Published var allPlayers : [String] {
+        didSet {
+            UserDefaults.standard.set(Array(allPlayers), forKey: userDefaultsKey)
+            print("allPlayers saved to User Defaults")
+        }
+    }
+    
+    init() {
+        // Load allKnownPlayerNames from UserDefaults when the ViewModel is initialized
+        if let savedNames = UserDefaults.standard.stringArray(forKey: userDefaultsKey) {
+            self.allPlayers = Set(savedNames).sorted() // Use Set for uniqueness, then sort
+            print("allKnownPlayerNames loaded from UserDefaults: \(self.allPlayers.count) names") // For debugging
+        } else {
+            self.allPlayers = []
+            print("No allKnownPlayerNames found in UserDefaults. Initializing empty.") // For debugging
+        }
+    }
+    
+    func addPlayerName(_ name: String) {
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedName.isEmpty && !allPlayers.contains(trimmedName) {
+                allPlayers.append(trimmedName)
+                allPlayers.sort() // Keep the list sorted alphabetically
+                print("Added '\(trimmedName)' to allKnownPlayerNames. Current count: \(allPlayers.count)") // For debugging
+            } else if trimmedName.isEmpty {
+                print("Attempted to add empty name to allKnownPlayerNames. Ignored.")
+            } else {
+                print("'\(trimmedName)' already exists in allKnownPlayerNames. No action needed.")
+            }
+        }
     
     func newRound(game: Game) -> [String] {
         let length = game.players.count
@@ -70,35 +57,37 @@ class ViewModel : ObservableObject {
     }
     
     func halve(player: Player) {
-        let scoreCount = player.runningScores.values.count
+        let scoreCount = player.runningScores.count
         let lastScoreIndex = scoreCount - 1
         
-        if let mostRecentTotal = player.runningScores.values.last {
+        if let mostRecentTotal = player.runningScores.last {
             let newTotal = mostRecentTotal / 2
-            player.runningScores.values[lastScoreIndex] = newTotal
+            player.runningScores[lastScoreIndex] = newTotal
         }
     }
     
     // add a score to both a player's scores and runningScores. half, if necessary.
     func addScore(player: Player, score: Int, halving: Bool) {
         
-        // scores
-        
-        player.scores.values.append(score)
+        // SCORES
+        var currentScores = player.scores
+        currentScores.append(score)
             
-        if (halving && player.total != 0 && player.total % 50 == 0 && score != 0) {
-            let reductionAmount = player.total / 2
+        if (halving && currentScores.reduce(0, +) != 0 && currentScores.reduce(0, +) % 50 == 0 && score != 0) {
+            let reductionAmount = currentScores.reduce(0, +) / 2
             let reduction = 0 - reductionAmount
-            player.scores.values.append(reduction)
+            currentScores.append(reduction)
         }
         
-        // runningScores
-    
+        // re-assign to player's scores
+        player.scores = currentScores
+        
+        // RUNNINGSCORES
         var newScore : Int
         
         // if there are already values in runningScores, add this rounds score to the existing running total
-        if !player.runningScores.values.isEmpty {
-            let runningScore = player.runningScores.values.last!
+        if !player.runningScores.isEmpty {
+            let runningScore = player.runningScores.last!
             newScore = runningScore + score
         } else {
             // otherwise, this rounds score is our running total
@@ -111,7 +100,9 @@ class ViewModel : ObservableObject {
         }
         
         // add new score
-        player.runningScores.values.append(newScore)
+        var currentRunningScores = player.runningScores
+        currentRunningScores.append(newScore)
+        player.runningScores = currentRunningScores
         
     }
     
@@ -142,7 +133,6 @@ class ViewModel : ObservableObject {
     
     func recalculateScores(player: Player, halving: Bool) {
         
-        // what do we need to do?
         // we been given an updated player, with updated scores, but potentially having incorrect halves (ie. they shouldn't have halved) or missed halves (ie. they should have halved, but haven't).
         // therefore, we need to run through the scores again. if, at any point, the runningScore / 50 == 0 (and neither the round's score or the runningScore is 0) then we need to add a halve at this point.
         
@@ -154,31 +144,41 @@ class ViewModel : ObservableObject {
         
         if halving {
             // remove all negatives
-            player.scores.values.removeAll { $0 < 0 }
+            let scoresWithoutNegatives = player.scores.filter { $0 >= 0 }
             
-            // add negatives back in, in the right places - THIS IS NOT WORKING CURRENTLY
-            var runningTotal = 0
-            player.scores.values.enumerated().forEach { index, score in
-                runningTotal += score
-                if (runningTotal % 50 == 0) && (runningTotal > 0) && (score > 0) {
-                    let reductionValue = 0 - (runningTotal / 2)
-
-                    // half
-                    player.scores.values.insert(reductionValue, at: index + 1)
+            // add negatives back in, in the right places
+            var scoresRunningTotal = 0
+            var newScoresWithHalving: [Int] = []
+            
+            for score in scoresWithoutNegatives {
+                newScoresWithHalving.append(score)
+                scoresRunningTotal += score
+                
+                if (scoresRunningTotal % 50 == 0) && (scoresRunningTotal > 0) && (score > 0) {
+                    let reductionValue = 0 - (scoresRunningTotal / 2)
+                    newScoresWithHalving.append(reductionValue)
                 }
+                
             }
+            
+            player.scores = newScoresWithHalving
+            
         }
         
+        let adjustedScores = player.scores
+        
         // re-calculate runningScores
-        player.runningScores.values.removeAll()
+        player.runningScores.removeAll()
         var runningTotal = 0
-        player.scores.values.forEach { score in
+        adjustedScores.forEach { score in
             runningTotal = runningTotal + score
             if halving && runningTotal % 50 == 0 && runningTotal > 0 && score > 0 {
                 runningTotal = runningTotal / 2
             }
-            player.runningScores.values.append(runningTotal)
+            player.runningScores.append(runningTotal)
         }
+        
+        
 
     }
     
@@ -186,7 +186,7 @@ class ViewModel : ObservableObject {
     func getScores(game: Game, roundIndex: Int) -> [String] {
         var theScores : [String] = []
         game.players.forEach { player in
-            let score = player.scores.values[roundIndex]
+            let score = player.scores[roundIndex]
             let stringScore = String(score)
             theScores.append(stringScore)
         }
@@ -226,3 +226,4 @@ class ViewModel : ObservableObject {
     }
     
 }
+

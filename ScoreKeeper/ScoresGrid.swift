@@ -37,7 +37,7 @@ struct ScoresGrid: View {
     
     var body: some View {
         
-        let maxRounds = currentGame.players.map { $0.scores.values.count }.max() ?? 0
+        let maxRounds = currentGame.players.map { $0.scores.count }.max() ?? 0
         
         VStack(spacing: 0) {
 
@@ -52,23 +52,24 @@ struct ScoresGrid: View {
                             
                             VStack {
                                 
-                                if currentGame.lowestWins && player.total == minScore
-                                    ||
-                                    !currentGame.lowestWins && player.total == maxScore {
-                                    
-                                    Image(systemName: "crown")
-                                        .foregroundStyle(.yellow)
-                                        .padding(.bottom, 1)
-                                    Text(player.name)
-                                        .bold()
-                                        .gridColumnAlignment(.center)
-                                    
-                                } else {
-                                    Color.clear
-                                    Text(player.name)
-                                        .bold()
-                                        .gridColumnAlignment(.center)
+                                Spacer()
+                                
+                                if currentGame.roundsPlayed > 0 {
+                                    if currentGame.lowestWins && player.total == minScore
+                                        ||
+                                        !currentGame.lowestWins && player.total == maxScore {
+                                        
+                                        Image(systemName: "crown")
+                                            .foregroundStyle(.yellow)
+                                            .padding(.bottom, 1)
+                                        
+                                        
+                                    }
                                 }
+                                
+                                Text(player.name)
+                                    .bold()
+                                    .gridColumnAlignment(.center)
                             }
                         }
                     }
@@ -85,10 +86,10 @@ struct ScoresGrid: View {
                         GridRow {
                                                         
                             // for each player
-                            ForEach(currentGame.players, id: \.self) { player in
+                            ForEach(currentGame.players) { player in
                                 
                                 // get their scores array
-                                let playersScores = player.scores.values
+                                let playersScores = player.scores
                                 
                                 Group {
                                     // if the roundIndex is within their range
@@ -150,19 +151,18 @@ struct ScoresGrid: View {
                 
                 Player(
                     name: "Rob",
-                    scores: intArray(
-                        values: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0]),
-                    runningScores: intArray(values: [])
+                    scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
+                    runningScores: []
                 ),
                 Player(
                     name: "Flora",
-                    scores: intArray(values: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14]),
-                    runningScores: intArray(values: [])
+                    scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
+                    runningScores: []
                 ),
                 Player(
                     name: "Vnesh",
-                    scores: intArray(values: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19, -50]),
-                    runningScores: intArray(values: [])
+                    scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19, -50],
+                    runningScores: []
                 )
                 
                  

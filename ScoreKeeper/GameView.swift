@@ -28,39 +28,36 @@ struct GameView: View {
     }
     
     @State var selectedTab : Tab = .scoresGridTab
+    
+    // error handling
+    @State var isError : Bool = false
+    @State var errorMessage : String = ""
         
     var body: some View {
-             
         Group {
-            if !game.players[0].scores.values.isEmpty {
-                TabView(selection: $selectedTab) {
-                    
-                    ScoresGrid(
-                        currentGame: game,
-                        roundToEdit: $roundIndex,
-                        editRoundSheetShowing: $editRoundSheetShowing
-                    )
-                    .navigationTitle("Scores")
-                        .tag(Tab.scoresGridTab)
-
-                    Leaderboard(game: game)
-                        .tag(Tab.leaderboardTab)
-                        .navigationTitle("Scoreboard")
-                        .padding()
-                }
-                .tabViewStyle(.page(indexDisplayMode: .always))
-                .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+            TabView(selection: $selectedTab) {
                 
-            } else {
-                VStack {
-                    Spacer()
-                    Text("No rounds played")
-                        .foregroundStyle(Color.gray)
-                    Spacer()
-                }
-                .ignoresSafeArea()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ScoresGrid(
+                    currentGame: game,
+                    roundToEdit: $roundIndex,
+                    editRoundSheetShowing: $editRoundSheetShowing
+                )
+                .navigationTitle("Scores")
+                    .tag(Tab.scoresGridTab)
+
+                Leaderboard(game: game)
+                    .tag(Tab.leaderboardTab)
+                    .navigationTitle("Scoreboard")
+                    .padding()
+                    .frame(width: 400)
             }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+        }
+        .alert("Error", isPresented: $isError) {
+            Button("OK") {}
+        } message: {
+            Text(errorMessage)
         }
         
         Spacer()
@@ -93,6 +90,14 @@ struct GameView: View {
                 }
                 .clipShape(.capsule)
                 .buttonStyle(.bordered)
+                .onTapGesture {
+                    do {
+                        try context.save()
+                        print("context saved with end of game")
+                    } catch {
+                        print("failed to save context at end of game")
+                    }
+                }
             }
             .padding(.top, 10)
         }
@@ -112,7 +117,7 @@ struct GameView: View {
             AddPlayerSheet(
                 game: game,
                 newPlayerSheetShowing: $newPlayerSheetShowing,
-                context: .midGame
+                useContext: .midGame
             )
             .presentationDetents([.large])
         }
@@ -135,19 +140,18 @@ struct GameView: View {
         game: Game(players: [
             Player(
                 name: "Rob",
-                scores: intArray(
-                    values: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0]),
-                runningScores: intArray(values: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156])
+                scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
+                runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
             ),
             Player(
                 name: "Flora",
-                scores: intArray(values: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14]),
-                runningScores: intArray(values: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365])
+                scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
+                runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
             ),
             Player(
                 name: "Vnesh",
-                scores: intArray(values: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19]),
-                runningScores: intArray(values: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100])
+                scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
+                runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
                 )
             ],
             halving: true

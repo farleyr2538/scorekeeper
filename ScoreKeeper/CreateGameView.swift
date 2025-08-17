@@ -12,7 +12,7 @@ struct CreateGameView: View {
     
     @EnvironmentObject private var viewModel : ViewModel
     @Environment(\.modelContext) var context
-        
+            
     @Bindable var game : Game = Game(players: [], halving: true, lowestWins: true)
     
     @State var newPlayerSheetShowing : Bool = false
@@ -27,7 +27,7 @@ struct CreateGameView: View {
         
         VStack { // enclosing VStack
             
-            VStack { // user input
+            VStack {
                 
                 // players
                 PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
@@ -40,6 +40,7 @@ struct CreateGameView: View {
                     .padding(.horizontal, 30)
                     .padding(.bottom, 20)
                     .padding(.top, 15)
+                    .frame(width: 300)
                 
             }
             .background(Color.brown.opacity(0.1))
@@ -68,23 +69,34 @@ struct CreateGameView: View {
                     showAlert = true
                 }
                 
-                // if so, add players to player history
-                if !game.players.isEmpty {
-                    game.players.forEach { player in
-                        if (!viewModel.allPlayers.contains(player.name)) {
-                            viewModel.allPlayers.append(player.name)
-                        }
+                // if so, add player names to player history
+                game.players.forEach { player in
+                    if !viewModel.allPlayers.contains(where: { $0 == player.name }) {
+                        viewModel.addPlayerName(player.name)
                     }
-                    // add the game to persistent memory
-                    context.insert(game)
-                    
-                    // start game
-                    gameStarted = true
                 }
+                
+                // add the game to persistent memory
+                context.insert(game)
+                
+                /*
+                // try to save
+                do {
+                    try context.save()
+                    print("context saved at game creation")
+                    print("number of players in game: \(game.players.count)")
+                } catch {
+                    print("unable to save game")
+                }
+                 */
+                
+                // start game
+                gameStarted = true
+                
                 
             } label: {
                 FullWidthButton(text: "Start")
-                    .padding(40)
+                    .padding(.horizontal)
             }
             
             

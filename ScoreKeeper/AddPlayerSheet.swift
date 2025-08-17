@@ -12,12 +12,8 @@ import SwiftData
 struct AddPlayerSheet: View {
     
     @EnvironmentObject var viewModel : ViewModel
-    
-    @State var newPlayer = Player(
-        name: "",
-        scores: intArray(values: []),
-        runningScores: intArray(values: [])
-    )
+        
+    @State var name : String = ""
     
     @Bindable var game : Game
     
@@ -25,13 +21,13 @@ struct AddPlayerSheet: View {
     
     @Environment(\.dismiss) var dismiss
     
-    // error
+    // error handling
     @State var isError : Bool = false
     @State var errorMessage : String = ""
     
     @FocusState private var textFieldFocused : Bool
     
-    var context : Context = .preGame
+    var useContext : Context = .preGame
     
     enum Context {
         case preGame
@@ -59,7 +55,7 @@ struct AddPlayerSheet: View {
                         .padding(.bottom, 5)
                         
                         
-                        if context == .midGame {
+                        if useContext == .midGame {
                             HStack {
                                 Image(systemName: "info.circle")
                                 Text("Adding a player mid-game will give them the average score of all players")
@@ -70,7 +66,7 @@ struct AddPlayerSheet: View {
                         
                         
                         HStack {
-                            TextField("Name", text: $newPlayer.name)
+                            TextField("Name", text: $name)
                                 .focused($textFieldFocused)
                                 .textFieldStyle(.roundedBorder)
                                 .autocorrectionDisabled(true)
@@ -81,19 +77,27 @@ struct AddPlayerSheet: View {
                             
                             Button("Add") {
                                 
-                                if newPlayer.name.isEmpty {
+                                // if there is no name, reject
+                                if name.isEmpty {
                                     errorMessage = "Please enter a name"
                                     isError = true
                                 }
                                 
+                                // if there is already a player with that name, reject
                                 game.players.forEach { player in
-                                    if player.name == newPlayer.name {
+                                    if player.name == name {
                                         errorMessage = "Player already exists"
                                         isError = true
                                     }
                                 }
                                 
-                                if context == .midGame {
+                                let newPlayer = Player(
+                                    name: name,
+                                    scores: [],
+                                    runningScores: []
+                                )
+                                
+                                if useContext == .midGame {
                                     
                                     let avgScore = viewModel.getAverageScore(game: game)
                                     
@@ -107,12 +111,13 @@ struct AddPlayerSheet: View {
                                     
                                     newPlayerSheetShowing = false
                                 }
+                                                                
+                                // add player to game
                                 game.players.append(newPlayer)
-                                newPlayer = Player(
-                                    name: "",
-                                    scores: intArray(values: []),
-                                    runningScores: intArray(values: [])
-                                )
+                                
+                                // reset name variable
+                                name = ""
+                                
                             }
                         }
                         .padding(.vertical)
@@ -122,7 +127,7 @@ struct AddPlayerSheet: View {
                     .padding(.top, 10)
                     
                     // previous players VStack
-                    if (!viewModel.allPlayers.isEmpty) {
+                    if !viewModel.allPlayers.isEmpty {
                         VStack(alignment: .leading) {
                             Text("Previous players")
                                 .font(.title3)
@@ -133,13 +138,17 @@ struct AddPlayerSheet: View {
                                     ForEach(viewModel.allPlayers, id: \.self) { player in
                                         NameTag(name: player)
                                             .onTapGesture {
+                                                
+                                                // create a new player with the right name, and add it to the game
                                                 let newPlayer = Player(
                                                     name: player,
-                                                    scores: intArray(values: []),
-                                                    runningScores: intArray(values: [])
+                                                    scores: [],
+                                                    runningScores: []
                                                 )
+                                                
                                                 game.players.append(newPlayer)
-                                                if context == .midGame {
+                                                
+                                                if useContext == .midGame {
                                                     newPlayerSheetShowing = false
                                                 }
                                                 
@@ -156,7 +165,7 @@ struct AddPlayerSheet: View {
                     }
                     
                     Group {
-                        if context == .preGame {
+                        if useContext == .preGame {
                             if !game.players.isEmpty {
                                 
                                 VStack {
@@ -197,7 +206,7 @@ struct AddPlayerSheet: View {
                             dismiss()
                         }
                     }
-                    if context == .preGame {
+                    if useContext == .preGame {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button {
                                 newPlayerSheetShowing = false
@@ -213,9 +222,6 @@ struct AddPlayerSheet: View {
                 } message: {
                     Text(errorMessage)
                 }
-                    
-                    
-                
             }
         }
     }
@@ -229,7 +235,7 @@ struct AddPlayerSheet: View {
             halving: true
         ),
         newPlayerSheetShowing: .constant(true),
-        context: .preGame
+        useContext: .preGame
     )
     .environmentObject(ViewModel())
 }
