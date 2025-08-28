@@ -38,7 +38,7 @@ struct GameHistory: View {
                             let title = viewModel.generateGameTitle(game: game)
                             
                             NavigationLink {
-                                GameView(game: game)
+                                GameView(id: game.id)
                             } label: {
                                 Text(title)
                             }

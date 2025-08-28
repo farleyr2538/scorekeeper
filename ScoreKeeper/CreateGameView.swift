@@ -21,6 +21,7 @@ struct CreateGameView: View {
     @State var errorText : String = ""
     @State var showAlert = false
     
+    @State var gameID : UUID?
     @State var gameStarted = false
         
     var body: some View {
@@ -79,21 +80,19 @@ struct CreateGameView: View {
                 // add the game to persistent memory
                 context.insert(game)
                 
-                
                 // try to save
                 do {
                     try context.save()
+                    gameID = game.id
                     print("context saved at game creation")
+                    print("game ID being passed: \(game.id.uuidString)")
                     print("number of players in game: \(game.players.count)")
+                    
+                    // start game
+                    gameStarted = true
                 } catch {
                     print("unable to save game")
                 }
-                 
-                
-                // start game
-                gameStarted = true
-                
-                
             } label: {
                 FullWidthButton(text: "Start")
                     .padding(.horizontal)
@@ -114,7 +113,9 @@ struct CreateGameView: View {
             }
         }
         .navigationDestination(isPresented: $gameStarted) {
-            GameView(game: game)
+            if let gameID = gameID {
+                GameView(id: gameID)
+            }
         }
     }
 }

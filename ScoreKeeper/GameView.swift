@@ -11,9 +11,7 @@ import SwiftData
 struct GameView: View {
     
     @Environment(\.modelContext) private var context
-        
-    @Bindable var game : Game
-    
+
     @State var newRoundSheetShowing : Bool = false
     @State var newPlayerSheetShowing : Bool = false
     @State var editRoundSheetShowing : Bool = false
@@ -32,130 +30,158 @@ struct GameView: View {
     // error handling
     @State var isError : Bool = false
     @State var errorMessage : String = ""
+    
+    var id : UUID
+    
+    @Query var games : [Game]
+    var game : Game? {
+        games.first(where: { $0.id == id })
+    }
         
     var body: some View {
-        Group {
-            TabView(selection: $selectedTab) {
-                
-                ScoresGrid(
-                    currentGame: game,
-                    roundToEdit: $roundIndex,
-                    editRoundSheetShowing: $editRoundSheetShowing
-                )
-                .navigationTitle("Scores")
-                    .tag(Tab.scoresGridTab)
+        
+        // DEBUGGING
+        let _ = print("=== GameView Debug ===")
+        let _ = print("Looking for game with id: \(id)")
+        let _ = print("Total games in context: \(games.count)")
+        let _ = games.enumerated().forEach { index, game in
+            print("Game \(index): id=\(game.id), players=\(game.players.count)")
+        }
+        let _ = print("Target game found: \(game != nil)")
+        
+        if let game = game {
+            Group {
+                TabView(selection: $selectedTab) {
+                    
+                    ScoresGrid(
+                        currentGame: game,
+                        roundToEdit: $roundIndex,
+                        editRoundSheetShowing: $editRoundSheetShowing
+                    )
+                    .navigationTitle("Scores")
+                        .tag(Tab.scoresGridTab)
 
-                Leaderboard(game: game)
-                    .tag(Tab.leaderboardTab)
-                    .navigationTitle("Scoreboard")
-                    .padding()
-                    .frame(width: 400)
+                    Leaderboard(game: game)
+                        .tag(Tab.leaderboardTab)
+                        .navigationTitle("Scoreboard")
+                        .padding()
+                        .frame(width: 400)
+                }
+                .tabViewStyle(.page(indexDisplayMode: .always))
+                .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
             }
-            .tabViewStyle(.page(indexDisplayMode: .always))
-            .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-        }
-        .alert("Error", isPresented: $isError) {
-            Button("OK") {}
-        } message: {
-            Text(errorMessage)
-        }
-        
-        Spacer()
-        
-        VStack { // VStack for buttons
-            Button {
-                newRoundSheetShowing = true
-            } label: {
-                FullWidthButton(text: "Add new round")
+            .alert("Error", isPresented: $isError) {
+                Button("OK") {}
+            } message: {
+                Text(errorMessage)
             }
             
-            HStack(spacing: 25) {
-                
+            Spacer()
+            
+            VStack { // VStack for buttons
                 Button {
-                    // average in a new player
-                    newPlayerSheetShowing = true
+                    newRoundSheetShowing = true
                 } label: {
-                    Text("Add Player")
-                        .padding(10)
+                    FullWidthButton(text: "Add new round")
                 }
-                .buttonBorderShape(.capsule)
-                .buttonStyle(.bordered)
                 
-                NavigationLink {
-                    FinishedGame(game: game)
-                } label: {
-                    Text("Finish")
-                        .padding(10)
-                        .foregroundStyle(Color.blue)
-                }
-                .clipShape(.capsule)
-                .buttonStyle(.bordered)
-                .onTapGesture {
-                    do {
-                        try context.save()
-                        print("context saved with end of game")
-                    } catch {
-                        print("failed to save context at end of game")
+                HStack(spacing: 25) {
+                    
+                    Button {
+                        // average in a new player
+                        newPlayerSheetShowing = true
+                    } label: {
+                        Text("Add Player")
+                            .padding(10)
+                    }
+                    .buttonBorderShape(.capsule)
+                    .buttonStyle(.bordered)
+                    
+                    NavigationLink {
+                        FinishedGame(game: game)
+                    } label: {
+                        Text("Finish")
+                            .padding(10)
+                            .foregroundStyle(Color.blue)
+                    }
+                    .clipShape(.capsule)
+                    .buttonStyle(.bordered)
+                    .onTapGesture {
+                        do {
+                            try context.save()
+                            print("context saved with end of game")
+                        } catch {
+                            print("failed to save context at end of game")
+                        }
                     }
                 }
+                .padding(.top, 10)
             }
-            .padding(.top, 10)
-        }
-        .frame(maxWidth: 350)
+            .frame(maxWidth: 350)
+                
             
-        
-        // new round sheet
-        .sheet(isPresented: $newRoundSheetShowing) {
-            NewRoundSheet(
-                currentGame: game,
-                newRoundSheetShowing: $newRoundSheetShowing
-            )
-            .presentationDetents([.medium, .large])
+            // new round sheet
+            .sheet(isPresented: $newRoundSheetShowing) {
+                NewRoundSheet(
+                    currentGame: game,
+                    newRoundSheetShowing: $newRoundSheetShowing
+                )
+                .presentationDetents([.medium, .large])
+            }
+            // new player sheet
+            .sheet(isPresented: $newPlayerSheetShowing) {
+                AddPlayerSheet(
+                    game: game,
+                    newPlayerSheetShowing: $newPlayerSheetShowing,
+                    useContext: .midGame
+                )
+                .presentationDetents([.large])
+            }
+            // edit round sheet
+            .sheet(isPresented: $editRoundSheetShowing) {
+                EditRoundSheet(
+                    game: game,
+                    editRoundSheetShowing: $editRoundSheetShowing,
+                    roundIndex: $roundIndex
+                )
+                .presentationDetents([.medium, .large])
+            }
+        } else {
+            Group {
+                VStack {
+                    Text("Error: No game found")
+                    Text("Game ID received: \(id.uuidString)")
+                }
+                .foregroundStyle(.gray)
+            }
         }
-        // new player sheet
-        .sheet(isPresented: $newPlayerSheetShowing) {
-            AddPlayerSheet(
-                game: game,
-                newPlayerSheetShowing: $newPlayerSheetShowing,
-                useContext: .midGame
-            )
-            .presentationDetents([.large])
-        }
-        // edit round sheet
-        .sheet(isPresented: $editRoundSheetShowing) {
-            EditRoundSheet(
-                game: game,
-                editRoundSheetShowing: $editRoundSheetShowing,
-                roundIndex: $roundIndex
-            )
-            .presentationDetents([.medium, .large])
-        }
-            
     }
 }
 
 #Preview {
+    
+    let previewGame = Game(players: [
+        Player(
+            name: "Rob",
+            scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
+            runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
+        ),
+        Player(
+            name: "Flora",
+            scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
+            runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
+        ),
+        Player(
+            name: "Vnesh",
+            scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
+            runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
+            )
+        ],
+        halving: true
+    )
         
     GameView(
-        game: Game(players: [
-            Player(
-                name: "Rob",
-                scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
-                runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
-            ),
-            Player(
-                name: "Flora",
-                scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
-                runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
-            ),
-            Player(
-                name: "Vnesh",
-                scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
-                runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
-                )
-            ],
-            halving: true
-        )
+        id: previewGame.id
     )
     .modelContainer(for: [Game.self, Player.self])
     .environmentObject(ViewModel())
