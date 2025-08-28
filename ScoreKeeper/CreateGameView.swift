@@ -79,7 +79,7 @@ struct CreateGameView: View {
                 // add the game to persistent memory
                 context.insert(game)
                 
-                /*
+                
                 // try to save
                 do {
                     try context.save()
@@ -88,7 +88,7 @@ struct CreateGameView: View {
                 } catch {
                     print("unable to save game")
                 }
-                 */
+                 
                 
                 // start game
                 gameStarted = true

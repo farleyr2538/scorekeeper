@@ -156,9 +156,10 @@ struct AddPlayerSheet: View {
                                         
                                     }
                                 }
-                                .padding(.leading)
+                                .padding(.horizontal)
                                 
                             }
+                            .scrollIndicators(.hidden)
                         }
                         .padding(.vertical)
                         
