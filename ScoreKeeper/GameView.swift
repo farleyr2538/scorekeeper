@@ -40,15 +40,6 @@ struct GameView: View {
         
     var body: some View {
         
-        // DEBUGGING
-        let _ = print("=== GameView Debug ===")
-        let _ = print("Looking for game with id: \(id)")
-        let _ = print("Total games in context: \(games.count)")
-        let _ = games.enumerated().forEach { index, game in
-            print("Game \(index): id=\(game.id), players=\(game.players.count)")
-        }
-        let _ = print("Target game found: \(game != nil)")
-        
         if let game = game {
             Group {
                 TabView(selection: $selectedTab) {
