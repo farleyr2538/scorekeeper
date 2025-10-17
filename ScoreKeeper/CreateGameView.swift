@@ -53,6 +53,8 @@ struct CreateGameView: View {
             
             Button {
                 
+                // abstract this out to ViewModel
+                
                 // verify game is valid
                 do {
                     try viewModel.verifyGame(game: game)
@@ -70,7 +72,7 @@ struct CreateGameView: View {
                     showAlert = true
                 }
                 
-                // if so, add player names to player history
+                // if game is valid, add player names to player history
                 game.players.forEach { player in
                     if !viewModel.allPlayers.contains(where: { $0 == player.name }) {
                         viewModel.addPlayerName(player.name)
@@ -89,7 +91,10 @@ struct CreateGameView: View {
                     print("number of players in game: \(game.players.count)")
                     
                     // start game
-                    gameStarted = true
+                    if !showAlert {
+                        gameStarted = true
+                    }
+                    
                 } catch {
                     print("unable to save game")
                 }
@@ -115,6 +120,7 @@ struct CreateGameView: View {
         .navigationDestination(isPresented: $gameStarted) {
             if let gameID = gameID {
                 GameView(id: gameID)
+                    .navigationBarBackButtonHidden()
             }
         }
     }

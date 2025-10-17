@@ -13,7 +13,7 @@ struct GameHistory: View {
     @Environment(\.modelContext) private var context
     @EnvironmentObject var viewModel : ViewModel
     
-    @Query var pastGames : [Game]
+    @Query(sort: \Game.date, order: .reverse) var pastGames : [Game]
     
     func deleteGame(at offsets : IndexSet) {
         for offset in offsets {

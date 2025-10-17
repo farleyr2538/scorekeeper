@@ -30,7 +30,7 @@ enum SchemaV3: VersionedSchema {
             scores.reduce(0, +)
         }
         var average: Double {
-            Double(total) / Double(scores.count)
+            Double(total) / Double(scores.count(where: { $0 > 0 }))
         }
         
         init(name: String, scores: [Int], runningScores: [Int]) {

@@ -177,9 +177,6 @@ class ViewModel : ObservableObject {
             }
             player.runningScores.append(runningTotal)
         }
-        
-        
-
     }
     
     // get each player's score for a given round

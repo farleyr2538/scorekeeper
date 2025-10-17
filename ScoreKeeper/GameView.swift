@@ -27,6 +27,8 @@ struct GameView: View {
     
     @State var selectedTab : Tab = .scoresGridTab
     
+    @State var isZoomed : Bool = false
+    
     // error handling
     @State var isError : Bool = false
     @State var errorMessage : String = ""
@@ -49,17 +51,29 @@ struct GameView: View {
                         roundToEdit: $roundIndex,
                         editRoundSheetShowing: $editRoundSheetShowing
                     )
-                    .navigationTitle("Scores")
+                        .navigationTitle("Scores")
                         .tag(Tab.scoresGridTab)
+                        
 
                     Leaderboard(game: game)
                         .tag(Tab.leaderboardTab)
                         .navigationTitle("Scoreboard")
                         .padding()
                         .frame(width: 400)
+                        .font(isZoomed ? .system(size: 40) : .body)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    isZoomed.toggle()
+                                } label: {
+                                    Image(systemName: "plus.magnifyingglass")
+                                }
+                            }
+                        }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                 .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+                
             }
             .alert("Error", isPresented: $isError) {
                 Button("OK") {}
@@ -139,18 +153,19 @@ struct GameView: View {
             }
         } else {
             Group {
-                VStack {
+                VStack(alignment: .center, spacing: 10) {
                     Text("Error: No game found")
                     Text("Game ID received: \(id.uuidString)")
                 }
                 .foregroundStyle(.gray)
+                .frame(width: 350)
             }
         }
     }
 }
 
 #Preview {
-    
+        
     let previewGame = Game(players: [
         Player(
             name: "Rob",
@@ -171,9 +186,11 @@ struct GameView: View {
         halving: true
     )
         
-    GameView(
-        id: previewGame.id
-    )
-    .modelContainer(for: [Game.self, Player.self])
-    .environmentObject(ViewModel())
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Game.self, Player.self, configurations: config)
+    container.mainContext.insert(previewGame)
+    
+    return GameView(id: previewGame.id)
+            .modelContainer(container)
+            .environmentObject(ViewModel())
 }

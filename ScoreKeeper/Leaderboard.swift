@@ -25,7 +25,6 @@ struct Leaderboard: View {
                             return p1.total < p2.total
                         } else {
                             return p1.total > p2.total
-                            
                         }
                     } else {
                         if game.lowestWins {
@@ -35,29 +34,28 @@ struct Leaderboard: View {
                         }
                     }
                 }.enumerated()), id: \.offset) { index, player in
-                    VStack {
-                        HStack {
-                            Text(String(index + 1))
-                                .foregroundStyle(.gray)
-                            Text(player.name)
-                            if index == 0 {
-                                Image(systemName: "crown")
-                                    .foregroundStyle(.yellow)
-                            }
-                            Spacer()
-                            Text(String(player.total))
+                    HStack(alignment: .center) {
+                        Text(String(index + 1))
+                            .foregroundStyle(.gray)
+                        Text(player.name)
+                        if index == 0 {
+                            Image(systemName: "crown")
+                                .foregroundStyle(.yellow)
                         }
-                        .padding(.bottom, index == length - 1 ? 10 : 0)
-                        if index != length - 1 {
-                            Divider()
-                        }
-                        
+                        Spacer()
+                        Text(String(player.total))
                     }
-                    .padding(.bottom, 5)
+                    
+                    // .padding(.bottom, index == length - 1 ? 10 : 0)
+                    if index != length - 1 {
+                        Divider()
+                    }
+                    
                 }
+                .padding(.vertical, 2)
             }
             .padding(.horizontal, 15)
-            .padding(.top, 15)
+            .padding(.vertical, 10)
             .background(Color.secondary.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 15))
             

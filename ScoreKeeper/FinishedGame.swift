@@ -32,14 +32,16 @@ struct FinishedGame: View {
                             .font(.title2)
                             .padding(.top, topPadding)
                         Leaderboard(game: game)
-                        Text("Player averages")
-                            .font(.title2)
-                            .padding(.top, topPadding)
-                        AveragesView(game: game)
+                        
                         Text("Game Progress")
                             .font(.title2)
                             .padding(.top, topPadding)
                         ScoreChart(game: game)
+                        
+                        Text("Player averages")
+                            .font(.title2)
+                            .padding(.top, topPadding)
+                        AveragesView(game: game)
 
                     }
                     .frame(maxWidth: 400)

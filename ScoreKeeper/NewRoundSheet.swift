@@ -52,7 +52,7 @@ struct NewRoundSheet: View {
                     }
                     .frame(width: 200)
                 }
-                Button("Add") {
+                Button {
                     
                     // validate values
                     // for each value in scorebuffers, confirm that it is not null, and that it can be converted to an int
@@ -93,9 +93,12 @@ struct NewRoundSheet: View {
                         }
                         
                     }
+                } label: {
+                    Text("Add")
+                        .padding(5)
                 }
-                .padding()
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 15)
             } else {
                 ProgressView("Loading scores...")
                     .onAppear {
