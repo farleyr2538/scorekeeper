@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
     
     @EnvironmentObject var viewModel : ViewModel
+    
+    @State var createGameButtonPressed : Bool = false
         
     var yOffset : CGFloat = 70.0
     
@@ -41,7 +43,6 @@ struct ContentView: View {
                 }
             }
             
-            
             Spacer()
             
             NavigationLink {
@@ -50,6 +51,13 @@ struct ContentView: View {
                 FullWidthButton(text: "Create Game")
                     .padding(.horizontal)
             }
+            .scaleEffect(createGameButtonPressed ? 0.9 : 1.0)
+            .animation(.spring(), value: createGameButtonPressed)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0.0)
+                    .onChanged { _ in createGameButtonPressed = true }
+                    .onEnded { _ in createGameButtonPressed = false }
+            )
         }
         
     }

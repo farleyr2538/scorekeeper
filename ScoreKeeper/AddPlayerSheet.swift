@@ -208,13 +208,11 @@ struct AddPlayerSheet: View {
                         }
                     }
                     if useContext == .preGame {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") {
                                 newPlayerSheetShowing = false
-                            } label: {
-                                Text("Done")
-                                    .bold()
                             }
+                            .buttonStyle(.borderedProminent)
                         }
                     }
                 }

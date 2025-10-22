@@ -12,15 +12,19 @@ struct FullWidthButton: View {
     var text : String
     
     var body: some View {
-        ZStack {
-            Capsule()
-                .foregroundStyle(.blue)
-            Text(text)
-                .foregroundStyle(.white)
-                .font(.title3)
+        VStack {
+            ZStack {
+                Capsule()
+                    .foregroundStyle(.blue)
+                Text(text)
+                    .foregroundStyle(.white)
+                    .font(.title3)
+            }
+            .frame(maxWidth: 400, maxHeight: 75)
+            .frame(minHeight: 75)
+            
         }
-        .frame(maxWidth: 400, maxHeight: 75)
-        .frame(minHeight: 75)
+        
     }
 }
 

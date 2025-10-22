@@ -20,6 +20,7 @@ struct CreateGameView: View {
     @State var isGameError : gameError?
     @State var errorText : String = ""
     @State var showAlert = false
+    @State var startButtonPressed : Bool = false
     
     @State var gameID : UUID?
     @State var gameStarted = false
@@ -102,7 +103,13 @@ struct CreateGameView: View {
                 FullWidthButton(text: "Start")
                     .padding(.horizontal)
             }
-            
+            .scaleEffect(startButtonPressed ? 0.9 : 1.0)
+            .animation(.spring(), value: startButtonPressed)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0.0)
+                    .onChanged { _ in startButtonPressed = true }
+                    .onEnded { _ in startButtonPressed = false }
+            )
             
             .sheet(isPresented: $newPlayerSheetShowing) {
                 AddPlayerSheet(
