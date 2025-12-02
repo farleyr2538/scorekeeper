@@ -59,8 +59,8 @@ struct GameView: View {
                         .tag(Tab.leaderboardTab)
                         .navigationTitle("Scoreboard")
                         .padding()
-                        // .frame(width: 400)
                         .font(isZoomed ? .system(size: 40) : .body)
+                        .animation(.easeIn, value: isZoomed)
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button {

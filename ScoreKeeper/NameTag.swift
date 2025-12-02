@@ -17,6 +17,7 @@ struct NameTag: View {
             .containerShape(.capsule)
             .background(Color.yellow)
             .cornerRadius(15)
+            .foregroundStyle(Color.black)
     }
 }
 

@@ -29,6 +29,8 @@ struct NewRoundSheet: View {
     
     var numberFormatter = NumberFormatter()
     
+    @State var indexOfNegativeNumbers : [Int] = []
+    
     var body: some View {
         
         VStack {
@@ -40,17 +42,12 @@ struct NewRoundSheet: View {
             
             if scoreBuffers.count == currentGame.players.count {
                 ForEach(currentGame.players.indices, id: \.self) { index in
-                    HStack {
-                        Text(currentGame.players[index].name)
-                        Spacer()
-                        TextField("0", text: $scoreBuffers[index])
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 75)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .focused($focusedField, equals: index)
-                    }
-                    .frame(width: 200)
+                    PlayerScoreRow(
+                        player: $currentGame.players[index],
+                        scoreBuffer: $scoreBuffers[index],
+                        indexOfNegativeNumbers: $indexOfNegativeNumbers,
+                        index: index
+                    )
                 }
                 Button {
                     
@@ -63,13 +60,22 @@ struct NewRoundSheet: View {
                     } else {
                         // add scores to each player's scores array
                         currentGame.players.indices.forEach { index in
-                                                    
+                            
                             // a copy of this player's score this round
-                            if let thisRoundsScore = Int(scoreBuffers[index]) {
+                            if let nominalScore = Int(scoreBuffers[index]) {
+                                
+                                var realScore : Int
+                                
+                                if indexOfNegativeNumbers.contains(index) {
+                                    realScore = 0 - nominalScore
+                                } else {
+                                    realScore = nominalScore
+                                }
+                                
                                 // add score to scores and runningScores, halving if necessary
                                 viewModel.addScore(
                                     player: currentGame.players[index],
-                                    score: thisRoundsScore,
+                                    score: realScore,
                                     halving: currentGame.halving
                                 )
                                 currentGame.roundsPlayed += 1
