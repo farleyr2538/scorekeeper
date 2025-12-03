@@ -80,6 +80,15 @@ struct CreateGameView: View {
                     }
                 }
                 
+                // add an initial '0' score to each player
+                game.players.forEach { player in
+                    viewModel.addScore(
+                        player: player,
+                        score: 0,
+                        halving: false
+                    )
+                }
+                
                 // add the game to persistent memory
                 context.insert(game)
                 

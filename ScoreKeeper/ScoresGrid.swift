@@ -95,7 +95,7 @@ struct ScoresGrid: View {
                                     // if the roundIndex is within their range
                                     if roundIndex < playersScores.count {
                                         // print their score
-                                        ScoreNumber(score: playersScores[roundIndex], context: .scores
+                                        ScoreNumber(score: playersScores[roundIndex], context: .scores, roundIndex: roundIndex
                                         )
                                     } else {
                                         // otherwise, print blank space

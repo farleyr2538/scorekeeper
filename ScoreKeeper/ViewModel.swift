@@ -82,7 +82,7 @@ class ViewModel : ObservableObject {
         // re-assign to player's scores
         player.scores = currentScores
         
-        // RUNNINGSCORES
+        // RUNNING SCORES
         var newScore : Int
         
         // if there are already values in runningScores, add this rounds score to the existing running total
@@ -113,12 +113,15 @@ class ViewModel : ObservableObject {
         game.players.forEach { player in
             scoresAdded += player.total
         }
-        let avgScoreDouble : Double = Double(scoresAdded) / Double(game.players.count)
-        let avgScore = Int(ceil(avgScoreDouble))
-        return avgScore
+        
+        if scoresAdded > 0 {
+            let avgScoreDouble : Double = Double(scoresAdded) / Double(game.players.count)
+            let avgScore = Int(ceil(avgScoreDouble))
+            return avgScore
+        } else {
+            return 0
+        }
     }
-    
-    
     
     func verifyGame(game: Game) throws {
         // if there are no players
@@ -140,7 +143,6 @@ class ViewModel : ObservableObject {
             // 1) remove any subtractions/negatives (in case - in light of the new scores - this person should never have halved)
             // 2) go through scores again, halving (ie. adding negatives) where necessary
             // 3) go through runningScores again
-        
         
         if halving {
             // remove all negatives

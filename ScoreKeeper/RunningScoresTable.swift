@@ -28,7 +28,7 @@ struct RunningScoresTable: View {
                             let scores = player.runningScores
                             
                             ForEach(Array(scores.enumerated()), id: \.offset) { scoreIndex, score in
-                                ScoreNumber(score: score, context: .runningScores)
+                                ScoreNumber(score: score, context: .runningScores, roundIndex: scoreIndex)
                             }
                         }
                     }

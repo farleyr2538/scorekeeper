@@ -11,6 +11,7 @@ struct ScoreNumber: View {
     
     let score : Int
     let context : Context
+    let roundIndex : Int
     
     enum Context {
         case runningScores
@@ -18,7 +19,7 @@ struct ScoreNumber: View {
     }
     
     var shouldHighlightZeros : Bool {
-        if context == .scores && score == 0 {
+        if context == .scores && score == 0 && roundIndex != 0 {
             return true
         } else {
             return false
@@ -36,5 +37,5 @@ struct ScoreNumber: View {
 }
 
 #Preview {
-    ScoreNumber(score: 16, context: .scores)
+    ScoreNumber(score: 16, context: .scores, roundIndex: 3)
 }
