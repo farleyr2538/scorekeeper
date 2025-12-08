@@ -23,6 +23,7 @@ struct GameView: View {
     enum Tab {
         case scoresGridTab
         case leaderboardTab
+        case chartTab
     }
     
     @State var selectedTab : Tab = .scoresGridTab
@@ -51,25 +52,38 @@ struct GameView: View {
                         roundToEdit: $roundIndex,
                         editRoundSheetShowing: $editRoundSheetShowing
                     )
-                        .navigationTitle("Scores")
-                        .tag(Tab.scoresGridTab)
+                    .navigationTitle("Scores")
+                    .tag(Tab.scoresGridTab)
                         
-
-                    Leaderboard(game: game)
-                        .tag(Tab.leaderboardTab)
-                        .navigationTitle("Scoreboard")
-                        .padding()
-                        .font(isZoomed ? .system(size: 40) : .body)
-                        .animation(.easeIn, value: isZoomed)
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button {
-                                    isZoomed.toggle()
-                                } label: {
-                                    Image(systemName: "plus.magnifyingglass")
-                                }
+                    ScrollView {
+                        Leaderboard(game: game)
+                            .frame(width: 350)
+                            .padding(.top, 10)
+                    }
+                    .navigationTitle("Leaderboard")
+                    .tag(Tab.leaderboardTab)
+                    .font(isZoomed ? .system(size: 40) : .body)
+                    .animation(.easeIn, value: isZoomed)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                isZoomed.toggle()
+                            } label: {
+                                Image(systemName: "plus.magnifyingglass")
                             }
                         }
+                    }
+                    
+                    VStack {
+                        ScoreChart(game: game)
+                            .tag(Tab.chartTab)
+                            .navigationTitle("Progress Chart")
+                            .padding()
+                        Spacer()
+                    }
+                    
+                        
+                        
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                 .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))

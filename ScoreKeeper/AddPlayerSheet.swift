@@ -103,7 +103,7 @@ struct AddPlayerSheet: View {
                             print("numberOfRounds: " + String(numberOfRounds))
                             
                             // add zeros for numberOfRounds (so far)
-                            for _ in 1 ..< numberOfRounds - 1 {
+                            for _ in 1 ..< numberOfRounds {
                                 viewModel.addScore(
                                     player: newPlayer,
                                     score: 0,

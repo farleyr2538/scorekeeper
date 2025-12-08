@@ -16,9 +16,12 @@ struct ScoreKeeperApp: App {
     init() {
                     
         do {
-            let schema = Schema(SchemaV3.models)
             let config = ModelConfiguration(isStoredInMemoryOnly: false)
-            sharedModelContainer = try ModelContainer(for: schema, configurations: config)
+            sharedModelContainer = try ModelContainer(
+                for: Game.self, Player.self,
+                migrationPlan: ScoreKeeperMigrationPlan.self,
+                configurations: config
+            )
             sharedModelContainer.mainContext.autosaveEnabled = true
         } catch {
             // schema mismatch or load error: delete old store and retry
@@ -36,8 +39,10 @@ struct ScoreKeeperApp: App {
             
             // retry creation (should succeed with fresh store)
             do {
-                let schema = Schema(SchemaV3.models)
-                sharedModelContainer = try ModelContainer(for: schema)
+                sharedModelContainer = try ModelContainer(
+                    for: Game.self, Player.self,
+                    migrationPlan: ScoreKeeperMigrationPlan.self
+                )
             } catch {
                 fatalError("Failed to delete and recreate ModelContainer: \(error)")
             }

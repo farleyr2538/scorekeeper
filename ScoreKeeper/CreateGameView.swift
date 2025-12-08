@@ -24,6 +24,7 @@ struct CreateGameView: View {
     
     @State var gameID : UUID?
     @State var gameStarted = false
+    @State var gameName = ""
         
     var body: some View {
         
@@ -43,6 +44,22 @@ struct CreateGameView: View {
                     .padding(.bottom, 20)
                     .padding(.top, 15)
                     .frame(width: 300)
+                
+                VStack(alignment: .leading) {
+                    Text("Game Name (optional):")
+                        .font(.headline)
+                    TextField("eg. 'Yaniv', 'Uno', 'Whist' etc.", text: $gameName)
+                        .padding(5)
+                        .clipShape(RoundedRectangle(cornerRadius: 15.0))
+                        //.border(.gray)
+                        .background(.white)
+                        .autocorrectionDisabled()
+                }
+                .padding(.bottom, 35)
+                .padding(.top, 15)
+                .padding(.horizontal, 30)
+                .frame(width: 300)
+                
                 
             }
             .background(Color.brown.opacity(0.1))
@@ -88,6 +105,9 @@ struct CreateGameView: View {
                         halving: false
                     )
                 }
+                
+                // increment roundsPlayed accordingly
+                game.roundsPlayed += 1
                 
                 // add the game to persistent memory
                 context.insert(game)

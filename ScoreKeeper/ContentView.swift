@@ -36,7 +36,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem {
                     NavigationLink {
-                        GameHistory()
+                        GameHistory(pastGames: dummyGameData)
                     } label: {
                         Image(systemName: "clock")
                     }

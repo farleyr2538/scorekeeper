@@ -54,7 +54,7 @@ struct ScoresGrid: View {
                                 
                                 Spacer()
                                 
-                                if currentGame.roundsPlayed > 0 {
+                                if currentGame.roundsPlayed > 1 {
                                     if currentGame.lowestWins && player.total == minScore
                                         ||
                                         !currentGame.lowestWins && player.total == maxScore {
@@ -62,9 +62,11 @@ struct ScoresGrid: View {
                                         Image(systemName: "crown")
                                             .foregroundStyle(.yellow)
                                             .padding(.bottom, 1)
-                                        
-                                        
                                     }
+                                } else {
+                                    Image(systemName: "crown")
+                                        .padding(.bottom, 1)
+                                        .hidden()
                                 }
                                 
                                 Text(player.name)

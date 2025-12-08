@@ -78,13 +78,15 @@ struct NewRoundSheet: View {
                                     score: realScore,
                                     halving: currentGame.halving
                                 )
-                                currentGame.roundsPlayed += 1
                                 
                             } else {
                                 errorMessage = "Unable to convert \(currentGame.players[index].name)'s score: \(scoreBuffers[index]). Please try again."
                                 isError = true
                             }
                         }
+                        
+                        // increment roundsPlayed
+                        currentGame.roundsPlayed += 1
                         
                         do {
                             try context.save()

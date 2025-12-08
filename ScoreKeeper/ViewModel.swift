@@ -204,7 +204,7 @@ class ViewModel : ObservableObject {
     }
     
     func generateGameTitle(game: Game) -> String {
-        let dateString = game.date.formatted(date: .abbreviated, time: .shortened)
+        
         
         let players = game.players
         var playersString = ""
@@ -220,9 +220,8 @@ class ViewModel : ObservableObject {
             playersString.append(value)
         }
         
-        let inputString = dateString + " with " + playersString
+        let inputString = " with " + playersString
         return inputString
     }
-    
 }
 
