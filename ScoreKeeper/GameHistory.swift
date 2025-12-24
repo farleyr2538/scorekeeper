@@ -8,16 +8,14 @@
 import SwiftUI
 import SwiftData
 
-
-
 struct GameHistory: View {
     
     @Environment(\.modelContext) private var context
     @EnvironmentObject var viewModel : ViewModel
     
-    // @Query(sort: \Game.date, order: .reverse) var pastGames : [Game]
+    @Query(sort: \Game.date, order: .reverse) var pastGames : [Game]
     
-    var pastGames : [Game]
+    // var pastGames : [Game]
     
     func deleteGame(at offsets : IndexSet) {
         for offset in offsets {
@@ -59,7 +57,7 @@ struct GameHistory: View {
 
 #Preview {
     GameHistory(
-        pastGames: dummyGameData
+        // pastGames: dummyGameData
     )
         .modelContainer(for: [Game.self, Player.self])
         .environmentObject(ViewModel())

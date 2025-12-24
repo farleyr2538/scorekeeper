@@ -30,41 +30,31 @@ struct CreateGameView: View {
         
         VStack { // enclosing VStack
             
-            VStack {
+            VStack(spacing: 40) {
+                
+                GameNameView(gameName: $gameName)
+                    //.padding(20)
+                    //.frame(width: 250)
                 
                 // players
                 PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
-                    .padding(.horizontal, 30)
-                    .padding(.top, 20)
-                    .padding(.bottom, 15)
+                    //.padding(.horizontal, 30)
+                    //.padding(.top, 20)
+                    //.padding(.bottom, 15)
                 
                 // game settings
                 GameSettings(game: game)
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, 20)
-                    .padding(.top, 15)
-                    .frame(width: 300)
-                
-                VStack(alignment: .leading) {
-                    Text("Game Name (optional):")
-                        .font(.headline)
-                    TextField("eg. 'Yaniv', 'Uno', 'Whist' etc.", text: $gameName)
-                        .padding(5)
-                        .clipShape(RoundedRectangle(cornerRadius: 15.0))
-                        //.border(.gray)
-                        .background(.white)
-                        .autocorrectionDisabled()
-                }
-                .padding(.bottom, 35)
-                .padding(.top, 15)
-                .padding(.horizontal, 30)
-                .frame(width: 300)
-                
+                    //.padding(.horizontal)
+                    //.padding(.bottom, 20)
+                    //.padding(.top, 15)
+                    //.frame(width: 300)
                 
             }
+            .frame(width: 250)
+            .padding(30)
             .background(Color.brown.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 15))
-            .padding(50)
+            
             .navigationTitle("Create Game")
             
             Spacer()
@@ -108,6 +98,8 @@ struct CreateGameView: View {
                 
                 // increment roundsPlayed accordingly
                 game.roundsPlayed += 1
+                
+                game.name = gameName
                 
                 // add the game to persistent memory
                 context.insert(game)

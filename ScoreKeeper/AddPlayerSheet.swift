@@ -43,7 +43,6 @@ struct AddPlayerSheet: View {
         
         NavigationStack {
         
-
             ScrollView {
                 
                 // add custom players VStack

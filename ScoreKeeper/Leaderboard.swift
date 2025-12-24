@@ -35,7 +35,7 @@ struct Leaderboard: View {
                     }
                 }.enumerated()), id: \.offset) { index, player in
                     HStack(alignment: .center) {
-                        Text(String(index + 1))
+                        Text(String(index + 1) + ".")
                             .foregroundStyle(.gray)
                         Text(player.name)
                         if index == 0 {
