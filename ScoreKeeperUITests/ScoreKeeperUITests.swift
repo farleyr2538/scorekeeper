@@ -24,7 +24,7 @@ final class ScoreKeeperUITests: XCTestCase {
     }
 
     @MainActor
-    func testGame() throws {
+    func testRandomGame() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.activate()
@@ -69,6 +69,65 @@ final class ScoreKeeperUITests: XCTestCase {
         app/*@START_MENU_TOKEN@*/.buttons["Finish"]/*[[".otherElements.buttons[\"Finish\"]",".buttons[\"Finish\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
+    }
+    
+    @MainActor
+    func testChartBugGame() {
+        
+        let data = [
+            "Ollie": [0, 32, 0, 19, 15, 1, 4, 2, 15, 12],
+            "Vnesh": [0, 10, 8, 0, 0, 33, 0, 32, 4, 0],
+            "Rob": [0, 2, 12, 27, 9, 11, 12, 16, 13, 8],
+            "Sach": [0, 10, 7, 17, 37, 21, 11, 12, 35, 4]
+        ]
+        let players = data.keys
+        let scores = data.values // list of lists [ [player1's scores], [player2's scores], ... ]
+        
+        let app = XCUIApplication()
+        app.activate()
+        
+        app/*@START_MENU_TOKEN@*/.buttons["Create Game"]/*[[".otherElements.buttons[\"Create Game\"]",".buttons[\"Create Game\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        
+        // add players
+        app/*@START_MENU_TOKEN@*/.buttons["Add players"]/*[[".otherElements.buttons[\"Add players\"]",".buttons[\"Add players\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        let addButton = app/*@START_MENU_TOKEN@*/.buttons["Add"]/*[[".otherElements.buttons[\"Add\"]",".buttons[\"Add\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch
+        
+        app/*@START_MENU_TOKEN@*/.textFields["Name"]/*[[".otherElements",".textFields[\"Olli\"]",".textFields[\"Name\"]",".textFields"],[[[-1,2],[-1,1],[-1,3],[-1,0,1]],[[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.typeText("Ollie")
+        addButton.tap()
+        app/*@START_MENU_TOKEN@*/.textFields["Name"]/*[[".otherElements",".textFields[\"Ro\"]",".textFields[\"Name\"]",".textFields"],[[[-1,2],[-1,1],[-1,3],[-1,0,1]],[[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.typeText("Rob")
+        addButton.tap()
+        app/*@START_MENU_TOKEN@*/.textFields["Name"]/*[[".otherElements",".textFields[\"Vnes\"]",".textFields[\"Name\"]",".textFields"],[[[-1,2],[-1,1],[-1,3],[-1,0,1]],[[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.typeText("Vnesh")
+        addButton.tap()
+        app/*@START_MENU_TOKEN@*/.textFields["Name"]/*[[".otherElements",".textFields[\"Sach\"]",".textFields[\"Name\"]",".textFields"],[[[-1,2],[-1,1],[-1,3],[-1,0,1]],[[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.typeText("Sach")
+        addButton.tap()
+        
+        app.buttons["Done"].firstMatch.tap()
+        
+        app/*@START_MENU_TOKEN@*/.buttons["Start"]/*[[".otherElements.buttons[\"Start\"]",".buttons[\"Start\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        
+        for round in 0..<scores.first!.count {
+            
+            let newRoundButton = app/*@START_MENU_TOKEN@*/.buttons["Add new round"]/*[[".otherElements.buttons[\"Add new round\"]",".buttons[\"Add new round\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch
+            newRoundButton.tap()
+            
+            let textFields = app.textFields.matching(identifier: "0").allElementsBoundByIndex
+
+            // for each player, tap the corresponding index textfield and add their score
+            for (index, player) in players.enumerated() {
+                textFields[index].tap()
+                let score = String(data[player]![round])
+                textFields[index].typeText(score)
+            }
+            
+            let addRoundButton = app.buttons["Add"].firstMatch
+            addRoundButton.tap()
+            
+        }
+        
+        // app.swipeLeft()
+        
+        
+        
     }
     
     @MainActor

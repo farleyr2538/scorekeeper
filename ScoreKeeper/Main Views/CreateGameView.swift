@@ -32,10 +32,6 @@ struct CreateGameView: View {
             
             VStack(spacing: 40) {
                 
-                GameNameView(gameName: $gameName)
-                    //.padding(20)
-                    //.frame(width: 250)
-                
                 // players
                 PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
                     //.padding(.horizontal, 30)
@@ -49,12 +45,15 @@ struct CreateGameView: View {
                     //.padding(.top, 15)
                     //.frame(width: 300)
                 
+                GameNameView(gameName: $gameName)
+                    //.padding(20)
+                    //.frame(width: 250)
+                
             }
             .frame(width: 250)
             .padding(30)
             .background(Color.brown.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 15))
-            
             .navigationTitle("Create Game")
             
             Spacer()
@@ -87,6 +86,7 @@ struct CreateGameView: View {
                     }
                 }
                 
+                /*
                 // add an initial '0' score to each player
                 game.players.forEach { player in
                     viewModel.addScore(
@@ -95,6 +95,7 @@ struct CreateGameView: View {
                         halving: false
                     )
                 }
+                 */
                 
                 // increment roundsPlayed accordingly
                 game.roundsPlayed += 1

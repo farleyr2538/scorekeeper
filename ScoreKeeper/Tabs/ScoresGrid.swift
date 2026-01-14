@@ -117,7 +117,7 @@ struct ScoresGrid: View {
                     }
                 } // end of Grid
                 .fixedSize(horizontal: true, vertical: false)
-                .padding(.top, 10)
+                //.padding(.top, 10)
                 
             } // end of Scrollview
             

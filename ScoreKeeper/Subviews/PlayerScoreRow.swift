@@ -52,7 +52,7 @@ struct PlayerScoreRow: View {
         player: .constant(
             Player(name: "Rob", scores: [0, 5, 10], runningScores: [0, 5, 15])
             ),
-        scoreBuffer: .constant("5"),
+        scoreBuffer: .constant(""),
         indexOfNegativeNumbers: .constant([0, 1, 2]),
         index: 5
     )

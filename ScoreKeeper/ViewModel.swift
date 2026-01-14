@@ -72,9 +72,15 @@ class ViewModel : ObservableObject {
         // SCORES
         var currentScores = player.scores
         currentScores.append(score)
+        let sum = currentScores.reduce(0, +)
             
-        if (halving && currentScores.reduce(0, +) != 0 && currentScores.reduce(0, +) % 50 == 0 && score != 0) {
-            let reductionAmount = currentScores.reduce(0, +) / 2
+        if (
+            halving // halving is on
+            && sum != 0 // current score is not 0
+            && sum % 50 == 0 // score is a multiple of 50
+            && score != 0 // score this round is not 0
+        ) {
+            let reductionAmount = sum / 2
             let reduction = 0 - reductionAmount
             currentScores.append(reduction)
         }
@@ -83,26 +89,35 @@ class ViewModel : ObservableObject {
         player.scores = currentScores
         
         // RUNNING SCORES
-        var newScore : Int
+        var newTotal : Int
+        var runningScores = player.runningScores
         
         // if there are already values in runningScores, add this rounds score to the existing running total
-        if !player.runningScores.isEmpty {
-            let runningScore = player.runningScores.last!
-            newScore = runningScore + score
+        if !runningScores.isEmpty {
+            let previousTotal = runningScores.last!
+            newTotal = previousTotal + score
         } else {
             // otherwise, this rounds score is our running total
-            newScore = score
+            newTotal = score
         }
+        
+        
         
         // test for need to half
-        if (halving && newScore % 50 == 0 && score != 0 && newScore != 0) {
-            newScore /= 2
+        if (
+            halving // halving is on
+            && newTotal != 0 // new total score is not 0 (although this is impossible if this rounds score is not 0)
+            && newTotal % 50 == 0 // new total score is a multiple of 50
+            && score != 0 // this rounds score is not 0
+        ) {
+            newTotal /= 2
         }
         
-        // add new score
-        var currentRunningScores = player.runningScores
-        currentRunningScores.append(newScore)
-        player.runningScores = currentRunningScores
+        // add new total to runningScores
+        runningScores.append(newTotal)
+        
+        // re-assign runningScores back to the player's running scores
+        player.runningScores = runningScores
         
     }
     
@@ -204,7 +219,6 @@ class ViewModel : ObservableObject {
     }
     
     func generateGameTitle(game: Game) -> String {
-        
         
         let players = game.players
         var playersString = ""

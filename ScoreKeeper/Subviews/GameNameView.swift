@@ -16,7 +16,7 @@ struct GameNameView: View {
         VStack(spacing: 20) {
             Text("Game Name")
                 .font(.title3.bold())
-            TextField("Optional", text: $gameName)
+            TextField("Optional (eg. 'Yaniv')", text: $gameName)
                 
                 .padding(10)
                 .autocorrectionDisabled()
@@ -40,5 +40,5 @@ struct GameNameView: View {
 }
 
 #Preview {
-    GameNameView(gameName: .constant("Yaniv"))
+    GameNameView(gameName: .constant(""))
 }

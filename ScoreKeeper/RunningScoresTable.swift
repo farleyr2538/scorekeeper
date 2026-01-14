@@ -10,13 +10,13 @@ import SwiftUI
 struct RunningScoresTable: View {
     
     @EnvironmentObject var viewModel : ViewModel
-    @Binding var currentGame : Game
+    @Bindable var currentGame : Game
     
     var body: some View {
         
         ScrollView {
             VStack {
-                HStack {
+                HStack(alignment: .top) {
                     
                     ForEach(currentGame.players) { player in
                         VStack(alignment: .center) {
@@ -34,11 +34,7 @@ struct RunningScoresTable: View {
                     }
                 }
                 Spacer()
-                Text("Running totals")
-                    .font(.caption)
-                    .padding(.bottom, 40)
-                    .padding(.top, 20)
-            }
+                            }
             .padding(.top)
         }
         
@@ -46,7 +42,7 @@ struct RunningScoresTable: View {
 }
 
 #Preview {
-    RunningScoresTable(currentGame: .constant(
+    RunningScoresTable(currentGame:
         Game(
             players: [
                 
@@ -69,6 +65,6 @@ struct RunningScoresTable: View {
             ],
             halving: true
         )
-    ))
+    )
 }
 
