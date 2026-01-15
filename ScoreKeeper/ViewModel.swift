@@ -88,6 +88,7 @@ class ViewModel : ObservableObject {
         // re-assign to player's scores
         player.scores = currentScores
         
+        
         // RUNNING SCORES
         var newTotal : Int
         var runningScores = player.runningScores
@@ -97,12 +98,10 @@ class ViewModel : ObservableObject {
             let previousTotal = runningScores.last!
             newTotal = previousTotal + score
         } else {
-            // otherwise, this rounds score is our running total
+            // otherwise, this round's score is our running total
             newTotal = score
         }
-        
-        
-        
+
         // test for need to half
         if (
             halving // halving is on
@@ -199,12 +198,19 @@ class ViewModel : ObservableObject {
     // get each player's score for a given round
     func getScores(game: Game, roundIndex: Int) -> [String] {
         var theScores : [String] = []
-        game.players.forEach { player in
-            let score = player.scores[roundIndex]
-            let stringScore = String(score)
-            theScores.append(stringScore)
+        
+        if roundIndex < game.roundsPlayed {
+            game.players.forEach { player in
+                let score = player.scores[roundIndex]
+                let stringScore = String(score)
+                theScores.append(stringScore)
+            }
+            return theScores
+        } else {
+            print("error: roundIndex greater than roundsPlayed")
+            return [""]
         }
-        return theScores
+        
     }
     
     // validate round input

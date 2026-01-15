@@ -57,9 +57,10 @@ struct GameView: View {
                         
                     ScrollView {
                         Leaderboard(game: game)
-                            .frame(width: 350)
+                            // .frame(width: 350)
                             .padding(.top, 10)
                     }
+                    .padding(.horizontal)
                     .navigationTitle("Leaderboard")
                     .tag(Tab.leaderboardTab)
                     .font(isZoomed ? .system(size: 40) : .body)
@@ -76,12 +77,11 @@ struct GameView: View {
                     
                     VStack {
                         ScoreChart(game: game)
-                            .tag(Tab.chartTab)
                             .navigationTitle("Progress Chart")
                             .padding()
                         Spacer()
                     }
-                    
+                    .tag(Tab.chartTab)
                         
                         
                 }
@@ -197,7 +197,8 @@ struct GameView: View {
             runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
             )
         ],
-        halving: true
+        halving: true,
+        roundsPlayed: 17
     )
         
     let config = ModelConfiguration(isStoredInMemoryOnly: true)

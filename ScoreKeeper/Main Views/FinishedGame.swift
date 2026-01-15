@@ -82,7 +82,6 @@ struct FinishedGame: View {
 
 #Preview {
         
-    NavigationView {
         FinishedGame(
             game: Game(players: [
                 Player(
@@ -104,5 +103,5 @@ struct FinishedGame: View {
                 halving: true
             )
         )
-    }
+    
 }

@@ -12,13 +12,13 @@ struct EditRoundSheet: View {
     
     @EnvironmentObject var viewModel : ViewModel
     
+    @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
     
     @State var isError : Bool = false
     @State var errorMessage : String = ""
     
     @Bindable var game : Game
-    
     
     @Binding var editRoundSheetShowing : Bool
     
@@ -70,9 +70,15 @@ struct EditRoundSheet: View {
                     }
                     
                     // and re-calculate their scores
-                    
                     game.players.forEach { player in
                         viewModel.recalculateScores(player: player, halving: game.halving)
+                    }
+                    
+                    do {
+                        try context.save()
+                        print("game saved after round edit")
+                    } catch {
+                        print("failed to save game after round edit")
                     }
                     
                     // dismiss sheet

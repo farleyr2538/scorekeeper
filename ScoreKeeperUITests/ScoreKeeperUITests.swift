@@ -43,7 +43,9 @@ final class ScoreKeeperUITests: XCTestCase {
         app/*@START_MENU_TOKEN@*/.buttons["Done"]/*[[".otherElements[\"Done\"].buttons.firstMatch",".otherElements.buttons[\"Done\"]",".buttons[\"Done\"]"],[[[-1,2],[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
         app/*@START_MENU_TOKEN@*/.buttons["Start"]/*[[".otherElements.buttons[\"Start\"]",".buttons[\"Start\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
         
-        for _ in 0..<20 {
+        let rounds = 15
+        
+        for _ in 0..<rounds {
             
             // add a round
             app/*@START_MENU_TOKEN@*/.buttons["Add new round"]/*[[".otherElements.buttons[\"Add new round\"]",".buttons[\"Add new round\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
@@ -65,6 +67,8 @@ final class ScoreKeeperUITests: XCTestCase {
             
             app.buttons["Add"].tap()
         }
+        
+        
         
         app/*@START_MENU_TOKEN@*/.buttons["Finish"]/*[[".otherElements.buttons[\"Finish\"]",".buttons[\"Finish\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
 

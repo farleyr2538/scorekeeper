@@ -14,57 +14,49 @@ struct ScoreChart: View {
     
     var body: some View {
         
-        ScrollView(.vertical) {
             
-            LazyVStack {
-                
-                Group {
-                    if game.roundsPlayed < 2 {
-                        HStack {
-                            Spacer()
-                            Text("Not enough rounds for a chart")
-                                .foregroundStyle(.gray)
-                            Spacer()
-                        }
-                    } else {
-                        Chart {
+        LazyVStack {
+            
+            Group {
+                if game.roundsPlayed < 2 {
+                    HStack {
+                        Spacer()
+                        Text("Not enough rounds for a chart")
+                            .foregroundStyle(.gray)
+                        Spacer()
+                    }
+                } else {
+                    Chart {
+                        
+                        ForEach(game.players) { player in
                             
-                            ForEach(game.players) { player in
-                                
+                            LineMark(
+                                x: .value("Round", 0),
+                                y: .value("Score", 0)
+                            )
+                            .foregroundStyle(by: .value("Player", player.name))
+                            .symbol(by: .value("Player", player.name))
+                            
+                            ForEach(Array(player.runningScores.enumerated()), id: \.offset) { index, score in
                                 LineMark(
-                                    x: .value("Round", 0),
-                                    y: .value("Score", 0)
+                                    x: .value("Round", index + 1),
+                                    y: .value("Score", score)
                                 )
                                 .foregroundStyle(by: .value("Player", player.name))
                                 .symbol(by: .value("Player", player.name))
-                                
-                                ForEach(Array(player.runningScores.enumerated()), id: \.offset) { index, score in
-                                    LineMark(
-                                        x: .value("Round", index + 1),
-                                        y: .value("Score", score)
-                                    )
-                                    .foregroundStyle(by: .value("Player", player.name))
-                                    .symbol(by: .value("Player", player.name))
-                                }
                             }
                         }
                     }
+                    .frame(maxWidth: 450)
                 }
-                .frame(height: 300)
-                .padding(.horizontal, 15)
-                .containerRelativeFrame([.horizontal, .vertical])
-                
-                // Spacer()
-                
-                RunningScoresTable(currentGame: game)
-                    .containerRelativeFrame([.horizontal, .vertical])
-                
             }
+            .frame(height: 300)
+            .padding(.horizontal, 15)
             
         }
-        .scrollTargetBehavior(.paging)
         
     }
+        
 }
 
 #Preview {
