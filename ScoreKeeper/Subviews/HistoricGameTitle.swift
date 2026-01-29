@@ -21,7 +21,7 @@ struct HistoricGameTitle: View {
         
         VStack(alignment: .leading) {
             
-            if gameName != "Game" {
+            if gameName != "Game" && gameName != "" {
                 Text(gameName).bold() + Text(title)
             } else {
                 Text("Game") + Text(title)

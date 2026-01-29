@@ -11,6 +11,8 @@ import SwiftData
 struct GameView: View {
     
     @Environment(\.modelContext) private var context
+    
+    @EnvironmentObject var viewModel : ViewModel
 
     @State var newRoundSheetShowing : Bool = false
     @State var newPlayerSheetShowing : Bool = false
@@ -101,8 +103,10 @@ struct GameView: View {
             
             .toolbar {
                 ToolbarItem {
-                    Button("edit") {
+                    Button {
                         editGameSheetShowing = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
                     }
                 }
             }
@@ -184,31 +188,64 @@ struct GameView: View {
                 .presentationDetents([.medium, .large])
             }
             .sheet(isPresented: $editGameSheetShowing) {
-                VStack(spacing: 15) {
+                VStack(spacing: 20) {
                     HStack {
                         Text("Edit Game")
                             .font(.title.bold())
                         Spacer()
                     }
-                    .padding(.bottom, 10)
+                    
+                    Divider()
+                        .padding(.bottom, 10)
+                    
                     HStack(spacing: 20) {
                         Text("Game name")
                         TextField("eg. Yaniv", text: $gameName)
                             .presentationDetents([.medium])
                             .textFieldStyle(.roundedBorder)
+                            .multilineTextAlignment(.trailing)
                     }
+                    
                     Toggle("Lowest score wins", isOn: $lowestWins)
-                    Button {
-                        game.name = gameName
-                        game.lowestWins = lowestWins
-                    } label: {
-                        Text("Save")
-                            .padding(5)
+                    
+                    HStack {
+                        
+                        Spacer()
+                        
+                        Button {
+                            editGameSheetShowing = false
+                        } label: {
+                            Text("Cancel")
+                                .padding(5)
+                        }
+                        .buttonStyle(.bordered)
+                        
+                        Spacer()
+                        
+                        Button {
+                            game.name = gameName
+                            game.lowestWins = lowestWins
+                            
+                            if !viewModel.gameNames.contains(gameName) {
+                                viewModel.gameNames.append(gameName)
+                            }
+                            
+                            try? context.save()
+                            
+                            editGameSheetShowing = false
+                        } label: {
+                            Text("Save")
+                                .padding(5)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        Spacer()
                     }
-                    .buttonStyle(.borderedProminent)
+                    .padding(.vertical)
+                    
                     Spacer()
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, 30)
                 .padding(.vertical, 50)
                 
             }
