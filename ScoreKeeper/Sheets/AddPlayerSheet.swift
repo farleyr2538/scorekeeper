@@ -22,6 +22,7 @@ enum Context {
 struct AddPlayerSheet: View {
     
     @EnvironmentObject var viewModel : ViewModel
+    @Environment(\.modelContext) var context
         
     @State var name : String = ""
     @Bindable var game : Game
@@ -98,7 +99,7 @@ struct AddPlayerSheet: View {
                         
                         if useContext == .midGame {
                             
-                            let numberOfRounds = game.roundsPlayed
+                            let numberOfRounds = game.roundsPlayed - 1
                             print("numberOfRounds: " + String(numberOfRounds))
                             
                             // add zeros for numberOfRounds (so far)
@@ -129,6 +130,9 @@ struct AddPlayerSheet: View {
                                                         
                         // add player to game
                         game.players.append(newPlayer)
+                        
+                        // save context
+                        try? context.save()
                         
                         // reset name variable
                         name = ""

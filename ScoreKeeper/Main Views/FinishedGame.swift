@@ -53,7 +53,7 @@ struct FinishedGame: View {
                 .tag(Tab.stats)
                 
                 ScoresGrid(
-                    currentGame: game,
+                    game: game,
                     roundToEdit: .constant(0),
                     editRoundSheetShowing: .constant(false)
                 )
@@ -103,5 +103,6 @@ struct FinishedGame: View {
                 halving: true
             )
         )
+        .environmentObject(ViewModel())
     
 }

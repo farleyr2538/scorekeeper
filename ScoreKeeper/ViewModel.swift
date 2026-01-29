@@ -17,24 +17,36 @@ enum gameError : Error {
 
 class ViewModel : ObservableObject {
     
-    private let userDefaultsKey = "allPlayers"
+    private let allPlayersKey = "allPlayers"
     
     @Published var allPlayers : [String] {
         didSet {
-            UserDefaults.standard.set(Array(allPlayers), forKey: userDefaultsKey)
-            print("allPlayers saved to User Defaults")
+            UserDefaults.standard.set(Array(allPlayers), forKey: allPlayersKey)
+        }
+    }
+    
+    @Published var gameNames : [String] {
+        didSet {
+            UserDefaults.standard.set(Array(gameNames), forKey: "gameNames")
         }
     }
     
     init() {
-        // Load allKnownPlayerNames from UserDefaults when the ViewModel is initialized
-        if let savedNames = UserDefaults.standard.stringArray(forKey: userDefaultsKey) {
+        
+        // load existing game names, if possible
+        if let existingGameNames = UserDefaults.standard.stringArray(forKey: "gameNames") {
+            self.gameNames = existingGameNames
+        } else {
+            self.gameNames = []
+        }
+        
+        // load allPlayers
+        if let savedNames = UserDefaults.standard.stringArray(forKey: allPlayersKey) {
             self.allPlayers = Set(savedNames).sorted() // Use Set for uniqueness, then sort
-            print("allKnownPlayerNames loaded from UserDefaults: \(self.allPlayers.count) names") // For debugging
         } else {
             self.allPlayers = []
-            print("No allKnownPlayerNames found in UserDefaults. Initializing empty.") // For debugging
         }
+        
     }
     
     func addPlayerName(_ name: String) {
@@ -42,11 +54,7 @@ class ViewModel : ObservableObject {
             if !trimmedName.isEmpty && !allPlayers.contains(trimmedName) {
                 allPlayers.append(trimmedName)
                 allPlayers.sort() // Keep the list sorted alphabetically
-                print("Added '\(trimmedName)' to allKnownPlayerNames. Current count: \(allPlayers.count)") // For debugging
-            } else if trimmedName.isEmpty {
-                print("Attempted to add empty name to allKnownPlayerNames. Ignored.")
-            } else {
-                print("'\(trimmedName)' already exists in allKnownPlayerNames. No action needed.")
+                // print("Added '\(trimmedName)' to allKnownPlayerNames. Current count: \(allPlayers.count)")
             }
         }
     
@@ -243,5 +251,25 @@ class ViewModel : ObservableObject {
         let inputString = " with " + playersString
         return inputString
     }
+    
+    func populateGameNameArray(games: [Game]) {
+        
+        print("populating game names array...")
+        
+        var gameNamesArray : [String] = []
+        
+        for game in games {
+            let gameName = game.name ?? ""
+            if gameName != "" {
+                gameNamesArray.append(gameName)
+            }
+        }
+        
+        let uniqueNames = Set(gameNamesArray)
+        print("unique names: " + uniqueNames.description)
+        self.gameNames = Array(uniqueNames)
+        
+    }
+        
 }
 

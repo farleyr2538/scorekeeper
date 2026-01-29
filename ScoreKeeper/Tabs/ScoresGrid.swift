@@ -9,13 +9,15 @@ import SwiftUI
 
 struct ScoresGrid: View {
     
-    @Bindable var currentGame : Game
+    @EnvironmentObject var viewModel : ViewModel
+    
+    @Bindable var game : Game
     @Binding var roundToEdit : Int
     @Binding var editRoundSheetShowing : Bool
     
     var minScore : Int {
-        var minSoFar : Int = currentGame.players.first!.total
-        currentGame.players.forEach { player in
+        var minSoFar : Int = game.players.first!.total
+        game.players.forEach { player in
             if player.total < minSoFar {
                 minSoFar = player.total
             }
@@ -24,8 +26,8 @@ struct ScoresGrid: View {
     }
     
     var maxScore : Int {
-        var maxSoFar : Int = currentGame.players.first!.total
-        currentGame.players.forEach { player in
+        var maxSoFar : Int = game.players.first!.total
+        game.players.forEach { player in
             if player.total > maxSoFar {
                 maxSoFar = player.total
             }
@@ -37,7 +39,9 @@ struct ScoresGrid: View {
     
     var body: some View {
         
-        let maxRounds = currentGame.players.map { $0.scores.count }.max() ?? 0
+        let winners = game.winners
+        
+        let maxRounds = game.players.map { $0.scores.count }.max() ?? 0
         
         VStack(spacing: 0) {
 
@@ -48,21 +52,18 @@ struct ScoresGrid: View {
                     // names row
                     GridRow {
                  
-                        ForEach(currentGame.players) { player in
+                        ForEach(game.players) { player in
                             
                             VStack {
                                 
                                 Spacer()
                                 
-                                if currentGame.roundsPlayed > 1 {
-                                    if currentGame.lowestWins && player.total == minScore
-                                        ||
-                                        !currentGame.lowestWins && player.total == maxScore {
+                                if winners.count == 1 && winners.contains(player) {
                                         
-                                        Image(systemName: "crown")
-                                            .foregroundStyle(.yellow)
-                                            .padding(.bottom, 1)
-                                    }
+                                    Image(systemName: "crown")
+                                        .foregroundStyle(.yellow)
+                                        .padding(.bottom, 1)
+                                    
                                 } else {
                                     Image(systemName: "crown")
                                         .padding(.bottom, 1)
@@ -79,7 +80,7 @@ struct ScoresGrid: View {
                     
                     GridRow {
                         Divider()
-                            .gridCellColumns(currentGame.players.count + 1)
+                            .gridCellColumns(game.players.count + 1)
                             .overlay(Color.gray)
                     }
                     
@@ -88,7 +89,7 @@ struct ScoresGrid: View {
                         GridRow {
                                                         
                             // for each player
-                            ForEach(currentGame.players) { player in
+                            ForEach(game.players) { player in
                                 
                                 // get their scores array
                                 let playersScores = player.scores
@@ -124,7 +125,7 @@ struct ScoresGrid: View {
             Grid(alignment: .top) {
                 
                 GridRow {
-                    ForEach(currentGame.players, id: \.self) { player in
+                    ForEach(game.players, id: \.self) { player in
                         Text("\(player.total)")
                     }
                 }
@@ -134,7 +135,7 @@ struct ScoresGrid: View {
                 
                 GridRow { // invisible row to ensure correct column width
                     
-                    ForEach(currentGame.players) { player in
+                    ForEach(game.players) { player in
                         Text(player.name)
                             .bold()
                             .gridColumnAlignment(.center)
@@ -147,7 +148,7 @@ struct ScoresGrid: View {
 }
 
 #Preview {
-    ScoresGrid(currentGame:
+    ScoresGrid(game:
         Game(
             players: [
                 
@@ -172,4 +173,5 @@ struct ScoresGrid: View {
             halving: true
         ), roundToEdit: .constant(1), editRoundSheetShowing: .constant(false)
     )
+    .environmentObject(ViewModel())
 }

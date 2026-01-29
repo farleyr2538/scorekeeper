@@ -10,27 +10,30 @@ import SwiftUI
 struct HistoricGameTitle: View {
     
     @EnvironmentObject var viewModel: ViewModel
+    
     var game: Game
     
     var body: some View {
         
         let title = viewModel.generateGameTitle(game: game)
         let dateString = game.date.formatted(date: .abbreviated, time: .shortened)
+        let gameName = game.name ?? "Game"
         
         VStack(alignment: .leading) {
-            Group {
-                if let gameName = game.name {
-                    if !gameName.isEmpty {
-                        Text(gameName).bold() + Text(title)
-                    } else {
-                        Text("Game") + Text(title)
-                    }
-                } else {
-                    Text("Game") + Text(title)
-                }
+            
+            if gameName != "Game" {
+                Text(gameName).bold() + Text(title)
+            } else {
+                Text("Game") + Text(title)
             }
+            
             Text(dateString)
                 .foregroundStyle(.gray)
+            
+            if game.winners.count == 1 {
+                Text("Winner: " + game.winners.first!.name)
+                    .foregroundStyle(.gray)
+            }
         }
         
         

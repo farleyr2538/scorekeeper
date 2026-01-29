@@ -15,6 +15,10 @@ struct GameView: View {
     @State var newRoundSheetShowing : Bool = false
     @State var newPlayerSheetShowing : Bool = false
     @State var editRoundSheetShowing : Bool = false
+    @State var editGameSheetShowing : Bool = false
+    
+    @State var gameName : String = ""
+    @State var lowestWins : Bool = true
     
     @State var roundIndex : Int = 0
         
@@ -48,7 +52,7 @@ struct GameView: View {
                 TabView(selection: $selectedTab) {
                     
                     ScoresGrid(
-                        currentGame: game,
+                        game: game,
                         roundToEdit: $roundIndex,
                         editRoundSheetShowing: $editRoundSheetShowing
                     )
@@ -70,7 +74,7 @@ struct GameView: View {
                             Button {
                                 isZoomed.toggle()
                             } label: {
-                                Image(systemName: "plus.magnifyingglass")
+                                Image(systemName: isZoomed ? "minus.magnifyingglass" : "plus.magnifyingglass")
                             }
                         }
                     }
@@ -89,6 +93,20 @@ struct GameView: View {
                 .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
                 
             }
+            
+            .onAppear {
+                gameName = game.name ?? ""
+                lowestWins = game.lowestWins
+            }
+            
+            .toolbar {
+                ToolbarItem {
+                    Button("edit") {
+                        editGameSheetShowing = true
+                    }
+                }
+            }
+            
             .alert("Error", isPresented: $isError) {
                 Button("OK") {}
             } message: {
@@ -165,6 +183,36 @@ struct GameView: View {
                 )
                 .presentationDetents([.medium, .large])
             }
+            .sheet(isPresented: $editGameSheetShowing) {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("Edit Game")
+                            .font(.title.bold())
+                        Spacer()
+                    }
+                    .padding(.bottom, 10)
+                    HStack(spacing: 20) {
+                        Text("Game name")
+                        TextField("eg. Yaniv", text: $gameName)
+                            .presentationDetents([.medium])
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    Toggle("Lowest score wins", isOn: $lowestWins)
+                    Button {
+                        game.name = gameName
+                        game.lowestWins = lowestWins
+                    } label: {
+                        Text("Save")
+                            .padding(5)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    Spacer()
+                }
+                .padding(.horizontal, 50)
+                .padding(.vertical, 50)
+                
+            }
+            
         } else {
             Group {
                 VStack(alignment: .center, spacing: 10) {
@@ -180,23 +228,25 @@ struct GameView: View {
 
 #Preview {
         
-    let previewGame = Game(players: [
-        Player(
-            name: "Rob",
-            scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
-            runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
-        ),
-        Player(
-            name: "Flora",
-            scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
-            runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
-        ),
-        Player(
-            name: "Vnesh",
-            scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
-            runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
+    let previewGame = Game(
+        players: [
+            Player(
+                name: "Rob",
+                scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
+                runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
+            ),
+            Player(
+                name: "Flora",
+                scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
+                runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
+            ),
+            Player(
+                name: "Vnesh",
+                scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
+                runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
             )
         ],
+        name: "Yaniv",
         halving: true,
         roundsPlayed: 17
     )
@@ -205,7 +255,9 @@ struct GameView: View {
     let container = try! ModelContainer(for: Game.self, Player.self, configurations: config)
     container.mainContext.insert(previewGame)
     
-    return GameView(id: previewGame.id)
+    return NavigationStack {
+        GameView(id: previewGame.id)
             .modelContainer(container)
             .environmentObject(ViewModel())
+    }
 }

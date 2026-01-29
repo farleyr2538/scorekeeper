@@ -34,20 +34,12 @@ struct CreateGameView: View {
                 
                 // players
                 PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
-                    //.padding(.horizontal, 30)
-                    //.padding(.top, 20)
-                    //.padding(.bottom, 15)
                 
                 // game settings
                 GameSettings(game: game)
-                    //.padding(.horizontal)
-                    //.padding(.bottom, 20)
-                    //.padding(.top, 15)
-                    //.frame(width: 300)
                 
+                // game name
                 GameNameView(gameName: $gameName)
-                    //.padding(20)
-                    //.frame(width: 250)
                 
             }
             .frame(width: 250)
@@ -79,28 +71,24 @@ struct CreateGameView: View {
                     showAlert = true
                 }
                 
-                // if game is valid, add player names to player history
+                // if game is valid, add any player names to player history that aren't there already
                 game.players.forEach { player in
                     if !viewModel.allPlayers.contains(where: { $0 == player.name }) {
                         viewModel.addPlayerName(player.name)
                     }
                 }
                 
-                /*
-                // add an initial '0' score to each player
-                game.players.forEach { player in
-                    viewModel.addScore(
-                        player: player,
-                        score: 0,
-                        halving: false
-                    )
+                // similarly, add game name to gameNames
+                gameName = gameName.trimmingCharacters(in: .whitespaces)
+                if gameName != "" && !viewModel.gameNames.contains(where: { $0 == gameName }) {
+                    viewModel.gameNames.append(gameName)
                 }
-                 */
                 
                 // increment roundsPlayed accordingly
                 game.roundsPlayed += 1
                 
                 game.name = gameName
+                gameID = game.id
                 
                 // add the game to persistent memory
                 context.insert(game)
@@ -108,10 +96,6 @@ struct CreateGameView: View {
                 // try to save
                 do {
                     try context.save()
-                    gameID = game.id
-                    print("context saved at game creation")
-                    print("game ID being passed: \(game.id.uuidString)")
-                    print("number of players in game: \(game.players.count)")
                     
                     // start game
                     if !showAlert {

@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     
     @EnvironmentObject var viewModel : ViewModel
+    
+    @Query var games : [Game]
     
     @State var createGameButtonPressed : Bool = false
         
@@ -34,6 +37,15 @@ struct ContentView: View {
                 Spacer()
             }
             .toolbar {
+                
+                ToolbarItem {
+                    NavigationLink {
+                        OverallLeaderboard()
+                    } label: {
+                        Image(systemName: "trophy")
+                    }
+                }
+                
                 ToolbarItem {
                     NavigationLink {
                         GameHistory()
@@ -41,6 +53,7 @@ struct ContentView: View {
                         Image(systemName: "clock")
                     }
                 }
+                
             }
             
             Spacer()
@@ -59,7 +72,9 @@ struct ContentView: View {
                     .onEnded { _ in createGameButtonPressed = false }
             )
         }
-        
+        .onAppear {
+            viewModel.populateGameNameArray(games: games)
+        }
     }
 }
 

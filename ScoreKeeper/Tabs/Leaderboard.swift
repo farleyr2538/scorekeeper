@@ -9,11 +9,13 @@ import SwiftUI
 
 struct Leaderboard: View {
     
+    @EnvironmentObject var viewModel : ViewModel
     @Bindable var game : Game
     
     var body: some View {
         
         let length = game.players.count
+        let winners = game.winners
         
         VStack {
         
@@ -33,12 +35,12 @@ struct Leaderboard: View {
                             return p1.name > p2.name
                         }
                     }
-                }.enumerated()), id: \.offset) { index, player in
+                }.enumerated()), id: \.element.id) { index, player in
                     HStack(alignment: .center) {
                         Text(String(index + 1) + ".")
                             .foregroundStyle(.gray)
                         Text(player.name)
-                        if index == 0 {
+                        if winners.count == 1 && winners.contains(player) {
                             Image(systemName: "crown")
                                 .foregroundStyle(.yellow)
                         }
@@ -91,4 +93,6 @@ struct Leaderboard: View {
                 lowestWins: true
         )
     )
+    .environmentObject(ViewModel())
+    .modelContainer(for: [Game.self, Player.self])
 }
