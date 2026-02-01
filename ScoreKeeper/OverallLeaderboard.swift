@@ -30,15 +30,12 @@ struct OverallLeaderboard: View {
                 Text("No data")
                     .foregroundStyle(.gray)
             } else {
-                
-                    
-                    Chart(data, id: \.name) {
-                        BarMark(
-                            x: .value("Name", $0.name),
-                            y: .value("Wins", $0.wins))
-                    }
-                    .frame(width: 300, height: 300)
-                
+                Chart(data, id: \.name) {
+                    BarMark(
+                        x: .value("Name", $0.name),
+                        y: .value("Wins", $0.wins))
+                }
+                .frame(width: 300, height: 300)
             }
             
             Spacer()
@@ -56,30 +53,10 @@ struct OverallLeaderboard: View {
         
     }
     
-    /*
-    private func getOverallStats(forGameName: String) -> [String : Int] {
-        let games = games.filter { $0.name == forGameName }
-        var gameWinners : [String] = []
-        for game in games {
-            let winners = game.winners
-            if winners.count == 1 {
-                gameWinners.append(winners.first!.name)
-            }
-        }
-        var winDict : [String : Int] = [:]
-        for winner in gameWinners {
-            if winDict.keys.contains(winner) {
-                winDict[winner]! += 1
-            } else {
-                winDict[winner] = 1
-            }
-        }
-        return winDict
-    }
-     */
 }
 
 extension Array where Element == Game {
+    
     func getWinners(gameName: String) -> [(name: String, wins: Int)] {
         
         var gamesWithCorrectName : [Game] = []
@@ -90,25 +67,35 @@ extension Array where Element == Game {
         } else {
             gamesWithCorrectName = self
         }
+        
+        var players : [String] = []
         var winners: [String] = []
         
         for game in gamesWithCorrectName {
+            
+            for player in game.players {
+                if !players.contains(player.name) {
+                    players.append(player.name)
+                }
+            }
+            
             if game.winners.count == 1 && game.players.count > 1 {
                 winners.append(game.winners.first!.name)
             }
         }
         
-        let uniqueNames = Set(winners)
         var winnersTupleArray : [(name: String, wins: Int)] = []
         
-        for name in uniqueNames {
+        for name in players {
             let wins = winners.filter( {$0 == name} ).count
             winnersTupleArray.append(
                 (name: name, wins: wins)
             )
         }
         
-        return winnersTupleArray
+        let sortedWinners = winnersTupleArray.sorted { $0.wins < $1.wins }
+        
+        return sortedWinners
     }
 }
 

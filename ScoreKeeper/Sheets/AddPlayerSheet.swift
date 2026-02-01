@@ -42,6 +42,18 @@ struct AddPlayerSheet: View {
     
     var body: some View {
         
+        // transform playerNames into either a dictionary or an array of tuples
+        var allPlayers : [(String, Int)] {
+            
+            let playersCountDict = viewModel.allPlayers.reduce(into: [:]) { dict, value in
+                dict[value, default: 0] += 1
+            }
+            
+            let sortedArray = playersCountDict.sorted(by: { $0.value > $1.value })
+            
+            return sortedArray
+        }
+        
         NavigationStack {
         
             ScrollView {
@@ -144,7 +156,7 @@ struct AddPlayerSheet: View {
                 .padding(.top, 10)
                 
                 // previous players VStack
-                if !viewModel.allPlayers.isEmpty {
+                if !allPlayers.isEmpty {
                     VStack(alignment: .leading) {
                         Text("Previous players")
                             .font(.title3)
@@ -152,7 +164,7 @@ struct AddPlayerSheet: View {
                         ScrollView(.horizontal) {
                             HStack {
                                 // for each player, show a selectable name that the user can press to add to the game
-                                ForEach(viewModel.allPlayers, id: \.self) { player in
+                                ForEach(allPlayers, id: \.0) { player, count in
                                     NameTag(name: player)
                                         .onTapGesture {
                                             

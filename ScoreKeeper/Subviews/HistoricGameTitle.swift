@@ -30,10 +30,16 @@ struct HistoricGameTitle: View {
             Text(dateString)
                 .foregroundStyle(.gray)
             
-            if game.winners.count == 1 {
-                Text("Winner: " + game.winners.first!.name)
-                    .foregroundStyle(.gray)
+            Group {
+                if game.winners.count == 1 {
+                    Text("Winner: " + game.winners.first!.name)
+                } else if game.winners.count > 1 {
+                    let names = game.winners.map(\.name).joined(separator: " & ")
+                    Text("Joint winners: " + names)
+                        
+                }
             }
+            .foregroundStyle(.gray)
         }
         
         

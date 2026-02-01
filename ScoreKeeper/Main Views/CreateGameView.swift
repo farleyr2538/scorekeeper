@@ -46,7 +46,6 @@ struct CreateGameView: View {
             .padding(30)
             .background(Color.brown.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 15))
-            .navigationTitle("Create Game")
             
             Spacer()
             
@@ -71,11 +70,9 @@ struct CreateGameView: View {
                     showAlert = true
                 }
                 
-                // if game is valid, add any player names to player history that aren't there already
+                // if game is valid, add player names to player history
                 game.players.forEach { player in
-                    if !viewModel.allPlayers.contains(where: { $0 == player.name }) {
-                        viewModel.addPlayerName(player.name)
-                    }
+                    viewModel.addPlayerName(player.name)
                 }
                 
                 // similarly, add game name to gameNames
@@ -124,12 +121,14 @@ struct CreateGameView: View {
                 )
                 .presentationDetents([.medium, .large])
             }
+            
             .alert("Error creating game", isPresented: $showAlert) {
                 Button("OK") {}
             } message: {
                 Text(errorText)
             }
         }
+        
         .navigationDestination(isPresented: $gameStarted) {
             if let gameID = gameID {
                 GameView(id: gameID)
@@ -140,6 +139,8 @@ struct CreateGameView: View {
 }
 
 #Preview {
-    CreateGameView()
-        .environmentObject(ViewModel())
+    NavigationStack {
+        CreateGameView()
+            .environmentObject(ViewModel())
+    }
 }

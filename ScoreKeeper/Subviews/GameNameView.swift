@@ -86,14 +86,16 @@ struct GameNameView: View {
                             .onTapGesture {
                                 
                                 gameName = option
+                                isFocussed = false
+                                isExpanded = false
                                 
+                                /*
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                                     withAnimation {
                                         isExpanded = false
                                     }
                                 }
-                                
-                                
+                                */
                             }
                     }
                     .padding(.horizontal, 10)
@@ -112,6 +114,17 @@ struct GameNameView: View {
             } else {
                 withAnimation {
                     isExpanded = true
+                }
+            }
+        }
+        .onChange(of: isFocussed) {
+            if isFocussed {
+                withAnimation {
+                    isExpanded = true
+                }
+            } else {
+                withAnimation {
+                    isExpanded = false
                 }
             }
         }

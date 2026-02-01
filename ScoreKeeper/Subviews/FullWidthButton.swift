@@ -20,7 +20,7 @@ struct FullWidthButton: View {
                     .foregroundStyle(.white)
                     .font(.title3)
             }
-            .frame(maxWidth: 400, maxHeight: 75)
+            .frame(maxWidth: 350, maxHeight: 75)
             .frame(minHeight: 75)
             
         }
