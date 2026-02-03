@@ -54,7 +54,7 @@ struct FinishedGame: View {
                 
                 ScoresGrid(
                     game: game,
-                    roundToEdit: .constant(0),
+                    roundIndex: .constant(0),
                     editRoundSheetShowing: .constant(false)
                 )
                 .navigationTitle("Scoreboard")

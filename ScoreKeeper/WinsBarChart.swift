@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 import Charts
 
-struct OverallLeaderboard: View {
+struct WinsBarChart: View {
     
     @EnvironmentObject var viewModel : ViewModel
     
@@ -35,7 +35,7 @@ struct OverallLeaderboard: View {
                         x: .value("Name", $0.name),
                         y: .value("Wins", $0.wins))
                 }
-                .frame(width: 300, height: 300)
+                .frame(height: 300)
             }
             
             Spacer()
@@ -101,7 +101,7 @@ extension Array where Element == Game {
 
 #Preview {
     NavigationStack {
-        OverallLeaderboard()
+        WinsBarChart()
             .environmentObject(ViewModel())
             .modelContainer(for: [Game.self, Player.self], inMemory: true) { result in
                 if case .success(let container) = result {

@@ -81,9 +81,6 @@ struct CreateGameView: View {
                     viewModel.gameNames.append(gameName)
                 }
                 
-                // increment roundsPlayed accordingly
-                game.roundsPlayed += 1
-                
                 game.name = gameName
                 gameID = game.id
                 

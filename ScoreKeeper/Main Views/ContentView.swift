@@ -40,7 +40,7 @@ struct ContentView: View {
                 
                 ToolbarItem {
                     NavigationLink {
-                        OverallLeaderboard()
+                        WinsBarChart()
                     } label: {
                         Image(systemName: "trophy")
                     }

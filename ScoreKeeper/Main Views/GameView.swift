@@ -55,7 +55,7 @@ struct GameView: View {
                     
                     ScoresGrid(
                         game: game,
-                        roundToEdit: $roundIndex,
+                        roundIndex: $roundIndex,
                         editRoundSheetShowing: $editRoundSheetShowing
                     )
                     .navigationTitle("Scores")
@@ -178,15 +178,7 @@ struct GameView: View {
                 )
                 .presentationDetents([.large])
             }
-            // edit round sheet
-            .sheet(isPresented: $editRoundSheetShowing) {
-                EditRoundSheet(
-                    game: game,
-                    editRoundSheetShowing: $editRoundSheetShowing,
-                    roundIndex: $roundIndex
-                )
-                .presentationDetents([.medium, .large])
-            }
+            
             .sheet(isPresented: $editGameSheetShowing) {
                 VStack(spacing: 20) {
                     HStack {

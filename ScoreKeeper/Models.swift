@@ -36,6 +36,10 @@ enum SchemaV4: VersionedSchema {
             Double(total) / Double(scores.count(where: { $0 > 0 }))
         }
         
+        var filteredSocres: [Int] {
+            scores.filter( { $0 >= 0 } )
+        }
+        
         init(name: String, scores: [Int], runningScores: [Int]) {
             self.id = UUID()
             self.name = name
@@ -114,6 +118,30 @@ enum SchemaV4: VersionedSchema {
             }
             
             return winners
+        }
+        
+        var calculatedRoundsPlayed : Int? {
+            
+            var collectionOfRounds: [Int] = []
+            
+            for player in players {
+                // count non-negative scores
+                var nonNegativeCounter = 0
+                for score in player.scores {
+                    if score >= 0 {
+                        nonNegativeCounter += 1
+                    }
+                }
+                collectionOfRounds.append(nonNegativeCounter)
+                
+            }
+            // if they are not all the same, defer to roundsPlayed
+            let setVersion = Set(collectionOfRounds)
+            if setVersion.count == 1 {
+                return collectionOfRounds.first
+            } else {
+                return nil
+            }
         }
         
     }

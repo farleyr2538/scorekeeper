@@ -12,8 +12,10 @@ struct ScoresGrid: View {
     @EnvironmentObject var viewModel : ViewModel
     
     @Bindable var game : Game
-    @Binding var roundToEdit : Int
+    @Binding var roundIndex : Int
     @Binding var editRoundSheetShowing : Bool
+    
+    @State var playerToEdit : Player = Player(name: "", scores: [], runningScores: [])
     
     var minScore : Int {
         var minSoFar : Int = game.players.first!.total
@@ -84,7 +86,8 @@ struct ScoresGrid: View {
                             .overlay(Color.gray)
                     }
                     
-                    ForEach(0..<maxRounds, id: \.self) { roundIndex in
+                    // scores
+                    ForEach(0..<maxRounds, id: \.self) { index in
 
                         GridRow {
                                                         
@@ -96,10 +99,19 @@ struct ScoresGrid: View {
                                 
                                 Group {
                                     // if the roundIndex is within their range
-                                    if roundIndex < playersScores.count {
+                                    if index < playersScores.count {
                                         // print their score
-                                        ScoreNumber(score: playersScores[roundIndex], context: .scores, roundIndex: roundIndex
+                                        ScoreNumber(
+                                            score: playersScores[index],
+                                            context: .scores,
+                                            roundIndex: roundIndex
                                         )
+                                        .onTapGesture {
+                                            // playerID: player.id? player index?
+                                            playerToEdit = player
+                                            roundIndex = index
+                                            editRoundSheetShowing = true
+                                        }
                                     } else {
                                         // otherwise, print blank space
                                         Text("")
@@ -108,13 +120,7 @@ struct ScoresGrid: View {
                                 .gridColumnAlignment(.center)
                                 
                             }
-                            
-                            
-                        }
-                        .onTapGesture {
-                            roundToEdit = roundIndex
-                            editRoundSheetShowing = true
-                        }
+                        }                        
                     }
                 } // end of Grid
                 .fixedSize(horizontal: true, vertical: false)
@@ -144,6 +150,17 @@ struct ScoresGrid: View {
                 }
             }
         } // end of VStack
+        
+        // edit round sheet
+        .sheet(isPresented: $editRoundSheetShowing) {
+            EditRoundSheet(
+                game: game,
+                editRoundSheetShowing: $editRoundSheetShowing,
+                roundIndex: $roundIndex,
+                playerToEdit: $playerToEdit
+            )
+            .presentationDetents([.medium, .large])
+        }
     }
 }
 
@@ -171,7 +188,7 @@ struct ScoresGrid: View {
                  
             ],
             halving: true
-        ), roundToEdit: .constant(1), editRoundSheetShowing: .constant(false)
+        ), roundIndex: .constant(1), editRoundSheetShowing: .constant(false)
     )
     .environmentObject(ViewModel())
 }

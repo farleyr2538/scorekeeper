@@ -165,20 +165,26 @@ class ViewModel : ObservableObject {
             // 1) remove any subtractions/negatives (in case - in light of the new scores - this person should never have halved)
             // 2) go through scores again, halving (ie. adding negatives) where necessary
             // 3) go through runningScores again
+                
+        // remove all negatives
+        let scoresWithoutNegatives = player.scores.filter { $0 >= 0 }
         
         if halving {
-            // remove all negatives
-            let scoresWithoutNegatives = player.scores.filter { $0 >= 0 }
-            
             // add negatives back in, in the right places
             var scoresRunningTotal = 0
             var newScoresWithHalving: [Int] = []
             
             for score in scoresWithoutNegatives {
+                
                 newScoresWithHalving.append(score)
                 scoresRunningTotal += score
                 
-                if (scoresRunningTotal % 50 == 0) && (scoresRunningTotal > 0) && (score > 0) {
+                // check for need to halve
+                if (
+                    scoresRunningTotal % 50 == 0
+                    && scoresRunningTotal > 0
+                    && score > 0
+                ) {
                     let reductionValue = 0 - (scoresRunningTotal / 2)
                     newScoresWithHalving.append(reductionValue)
                 }
@@ -189,14 +195,23 @@ class ViewModel : ObservableObject {
             
         }
         
-        let adjustedScores = player.scores
-        
         // re-calculate runningScores
         player.runningScores.removeAll()
+        
         var runningTotal = 0
-        adjustedScores.forEach { score in
-            runningTotal = runningTotal + score
-            if halving && runningTotal % 50 == 0 && runningTotal > 0 && score > 0 {
+        
+        scoresWithoutNegatives.forEach { score in
+            
+            // add score to running total
+            runningTotal += score
+            
+            // check conditions for halving
+            if (
+                halving &&
+                runningTotal > 0 &&
+                score > 0 &&
+                runningTotal % 50 == 0
+            ) {
                 runningTotal = runningTotal / 2
             }
             player.runningScores.append(runningTotal)
@@ -207,17 +222,23 @@ class ViewModel : ObservableObject {
     func getScores(game: Game, roundIndex: Int) -> [String] {
         var theScores : [String] = []
         
-        if roundIndex < game.roundsPlayed {
-            game.players.forEach { player in
-                let score = player.scores[roundIndex]
-                let stringScore = String(score)
-                theScores.append(stringScore)
+        if let calculatedRoundsPlayed = game.calculatedRoundsPlayed {
+            if roundIndex < calculatedRoundsPlayed {
+                game.players.forEach { player in
+                    let score = player.scores[roundIndex]
+                    let stringScore = String(score)
+                    theScores.append(stringScore)
+                }
+                return theScores
+            } else {
+                print("getScores() error: roundIndex greater or equal to roundsPlayed")
+                return [""]
             }
-            return theScores
         } else {
-            print("error: roundIndex greater than roundsPlayed")
-            return [""]
+            print("getScores() error: unable to access game.calculatedRoundsPlayed")
+            return[""]
         }
+        
         
     }
     
