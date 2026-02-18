@@ -21,6 +21,7 @@ struct GameView: View {
     
     @State var gameName : String = ""
     @State var lowestWins : Bool = true
+    @State var halving : Bool = false
     
     @State var roundIndex : Int = 0
         
@@ -51,6 +52,7 @@ struct GameView: View {
         
         if let game = game {
             Group {
+                
                 TabView(selection: $selectedTab) {
                     
                     ScoresGrid(
@@ -99,6 +101,7 @@ struct GameView: View {
             .onAppear {
                 gameName = game.name ?? ""
                 lowestWins = game.lowestWins
+                halving = game.halving
             }
             
             .toolbar {
@@ -160,7 +163,6 @@ struct GameView: View {
             }
             .frame(maxWidth: 350)
                 
-            
             // new round sheet
             .sheet(isPresented: $newRoundSheetShowing) {
                 NewRoundSheet(
@@ -169,6 +171,7 @@ struct GameView: View {
                 )
                 .presentationDetents([.medium, .large])
             }
+            
             // new player sheet
             .sheet(isPresented: $newPlayerSheetShowing) {
                 AddPlayerSheet(
@@ -179,68 +182,17 @@ struct GameView: View {
                 .presentationDetents([.large])
             }
             
+            // edit game sheet
             .sheet(isPresented: $editGameSheetShowing) {
-                VStack(spacing: 20) {
-                    HStack {
-                        Text("Edit Game")
-                            .font(.title.bold())
-                        Spacer()
-                    }
-                    
-                    Divider()
-                        .padding(.bottom, 10)
-                    
-                    HStack(spacing: 20) {
-                        Text("Game name")
-                        TextField("eg. Yaniv", text: $gameName)
-                            .presentationDetents([.medium])
-                            .textFieldStyle(.roundedBorder)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    
-                    Toggle("Lowest score wins", isOn: $lowestWins)
-                    
-                    HStack {
-                        
-                        Spacer()
-                        
-                        Button {
-                            editGameSheetShowing = false
-                        } label: {
-                            Text("Cancel")
-                                .padding(5)
-                        }
-                        .buttonStyle(.bordered)
-                        
-                        Spacer()
-                        
-                        Button {
-                            game.name = gameName
-                            game.lowestWins = lowestWins
-                            
-                            if !viewModel.gameNames.contains(gameName) {
-                                viewModel.gameNames.append(gameName)
-                            }
-                            
-                            try? context.save()
-                            
-                            editGameSheetShowing = false
-                        } label: {
-                            Text("Save")
-                                .padding(5)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 30)
-                .padding(.vertical, 50)
-                
+                EditGameSheet(
+                    game: game,
+                    gameName: $gameName,
+                    lowestWins: $lowestWins,
+                    halving: $halving,
+                    editGameSheetShowing: $editGameSheetShowing
+                )
             }
+            .presentationDetents([.medium, .large])
             
         } else {
             Group {

@@ -40,19 +40,27 @@ struct AddPlayerSheet: View {
     
     @State var startScoreMode : StartScoreMode = .averageScore
     
-    var body: some View {
+    var allPlayers : [(String, Int)] {
         
         // transform playerNames into either a dictionary or an array of tuples
-        var allPlayers : [(String, Int)] {
-            
-            let playersCountDict = viewModel.allPlayers.reduce(into: [:]) { dict, value in
-                dict[value, default: 0] += 1
+        let playersCountDict = viewModel.allPlayers.reduce(into: [:]) { dict, value in
+            dict[value, default: 0] += 1
+        } // { ["Rob", 4], ["Jamie", 2], ... }
+        print("playersCountDict:\n\(playersCountDict)")
+        
+        let sortedArray = playersCountDict.sorted(by: {
+            if $0.value != $1.value {
+                return $0.value > $1.value
+            } else {
+                return $0.key < $1.key
             }
-            
-            let sortedArray = playersCountDict.sorted(by: { $0.value > $1.value })
-            
-            return sortedArray
-        }
+        })
+        print("sortedArray:\n\(sortedArray)")
+        
+        return sortedArray
+    }
+    
+    var body: some View {
         
         NavigationStack {
         
@@ -79,6 +87,77 @@ struct AddPlayerSheet: View {
                             .onAppear {
                                 textFieldFocused = true
                             }
+                        
+                        Button("Add") {
+                            
+                            // if there is no name, reject
+                            if name.isEmpty {
+                                errorMessage = "Please enter a name"
+                                isError = true
+                            }
+                            
+                            // if there is already a player with that name, reject - this is not working when it should
+                            let existingPlayersNames = game.players.map(\.name)
+                            
+                            existingPlayersNames.forEach { playerName in
+                                if playerName == name {
+                                    errorMessage = "Player already exists"
+                                    isError = true
+                                }
+                            }
+                            
+                            // only proceed if there is not an error
+                            if !isError {
+                                
+                                let newPlayer = Player(
+                                    name: name,
+                                    scores: [],
+                                    runningScores: []
+                                )
+                                
+                                if useContext == .midGame {
+                                    
+                                    let numberOfRounds = game.roundsPlayed - 1
+                                    print("numberOfRounds: " + String(numberOfRounds))
+                                    
+                                    // add zeros for numberOfRounds (so far)
+                                    for _ in 1 ..< numberOfRounds {
+                                        viewModel.addScore(
+                                            player: newPlayer,
+                                            score: 0,
+                                            halving: false
+                                        )
+                                    }
+                                    
+                                    let firstScore : Int
+                                    
+                                    if startScoreMode == .averageScore {
+                                        firstScore = viewModel.getAverageScore(game: game)
+                                    } else {
+                                        firstScore = 0
+                                    }
+                                    
+                                    viewModel.addScore(
+                                        player: newPlayer,
+                                        score: firstScore,
+                                        halving: false
+                                    )
+                                    
+                                    newPlayerSheetShowing = false
+                                }
+                                
+                                // add player to game
+                                game.players.append(newPlayer)
+                                
+                                // save context
+                                try? context.save()
+                            }
+                            
+                            // reset name variable
+                            name = ""
+                            
+                        }
+                        
                     }
                     .padding(.vertical)
                     
@@ -87,114 +166,20 @@ struct AddPlayerSheet: View {
                         NewPlayerScoreChooser(game: game, startScoreMode: $startScoreMode)
                     }
                     
-                    Button("Add") {
-                        
-                        // if there is no name, reject
-                        if name.isEmpty {
-                            errorMessage = "Please enter a name"
-                            isError = true
-                        }
-                        
-                        // if there is already a player with that name, reject
-                        game.players.forEach { player in
-                            if player.name == name {
-                                errorMessage = "Player already exists"
-                                isError = true
-                            }
-                        }
-                        
-                        let newPlayer = Player(
-                            name: name,
-                            scores: [],
-                            runningScores: []
-                        )
-                        
-                        if useContext == .midGame {
-                            
-                            let numberOfRounds = game.roundsPlayed - 1
-                            print("numberOfRounds: " + String(numberOfRounds))
-                            
-                            // add zeros for numberOfRounds (so far)
-                            for _ in 1 ..< numberOfRounds {
-                                viewModel.addScore(
-                                    player: newPlayer,
-                                    score: 0,
-                                    halving: false
-                                )
-                            }
-                            
-                            let firstScore : Int
-                            
-                            if startScoreMode == .averageScore {
-                                firstScore = viewModel.getAverageScore(game: game)
-                            } else {
-                                firstScore = 0
-                            }
-                            
-                            viewModel.addScore(
-                                player: newPlayer,
-                                score: firstScore,
-                                halving: false
-                            )
-                            
-                            newPlayerSheetShowing = false
-                        }
-                                                        
-                        // add player to game
-                        game.players.append(newPlayer)
-                        
-                        // save context
-                        try? context.save()
-                        
-                        // reset name variable
-                        name = ""
-                        
-                    }
+                    
                 }
                 .buttonStyle(.bordered)
                 .padding(.horizontal)
                 .padding(.top, 10)
                 
-                // previous players VStack
-                if !allPlayers.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Previous players")
-                            .font(.title3)
-                            .padding(.leading)
-                        ScrollView(.horizontal) {
-                            HStack {
-                                // for each player, show a selectable name that the user can press to add to the game
-                                ForEach(allPlayers, id: \.0) { player, count in
-                                    NameTag(name: player)
-                                        .onTapGesture {
-                                            
-                                            if useContext == .preGame { // create a new player with the corresponding name, and add it to the game
-                                                let newPlayer = Player(
-                                                    name: player,
-                                                    scores: [],
-                                                    runningScores: []
-                                                )
-                                                
-                                                game.players.append(newPlayer)
-                                                
-                                            } else if useContext == .midGame { // just insert name into textfield so user can choose score calculation method
-                                                
-                                                name = player
-                                                // newPlayerSheetShowing = false
-                                            }
-                                            
-                                        }
-                                    
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                        }
-                        .scrollIndicators(.hidden)
-                    }
-                    .padding(.vertical)
-                    
-                }
+                PreviousPlayers(
+                    allPlayers: allPlayers,
+                    game: game,
+                    useContext: useContext,
+                    isError: $isError,
+                    errorMessage: $errorMessage,
+                    name: $name
+                )
                 
                 // when pre-game, display players added while sheet is showing
                 Group {
@@ -228,6 +213,7 @@ struct AddPlayerSheet: View {
                         }
                     }
                 }
+                .padding(.horizontal)
                 .padding(.bottom, 1)
                 
                 Spacer()
@@ -253,8 +239,9 @@ struct AddPlayerSheet: View {
             } message: {
                 Text(errorMessage)
             }
-            
+
         }
+                
     }
 }
 

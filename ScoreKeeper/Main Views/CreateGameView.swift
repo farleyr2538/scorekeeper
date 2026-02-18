@@ -25,104 +25,113 @@ struct CreateGameView: View {
     @State var gameID : UUID?
     @State var gameStarted = false
     @State var gameName = ""
-        
+            
     var body: some View {
         
-        VStack { // enclosing VStack
-            
-            VStack(spacing: 40) {
+        ScrollViewReader { proxy in
+            ScrollView {
                 
-                // players
-                PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
-                
-                // game settings
-                GameSettings(game: game)
-                
-                // game name
-                GameNameView(gameName: $gameName)
-                
-            }
-            .frame(width: 250)
-            .padding(30)
-            .background(Color.brown.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 15))
-            
-            Spacer()
-            
-            Button {
-                
-                // abstract this out to ViewModel
-                
-                // verify game is valid
-                do {
-                    try viewModel.verifyGame(game: game)
-                } catch let error as gameError {
-                    switch error {
-                    case .noPlayers:
-                        errorText = "Please add players before starting"
-                        showAlert = true
-                    case .tooManyPlayers:
-                        errorText = "There is a maximum of seven players"
-                        showAlert = true
-                    }
-                } catch {
-                    errorText = "Unexpected error"
-                    showAlert = true
-                }
-                
-                // if game is valid, add player names to player history
-                game.players.forEach { player in
-                    viewModel.addPlayerName(player.name)
-                }
-                
-                // similarly, add game name to gameNames
-                gameName = gameName.trimmingCharacters(in: .whitespaces)
-                if gameName != "" && !viewModel.gameNames.contains(where: { $0 == gameName }) {
-                    viewModel.gameNames.append(gameName)
-                }
-                
-                game.name = gameName
-                gameID = game.id
-                
-                // add the game to persistent memory
-                context.insert(game)
-                
-                // try to save
-                do {
-                    try context.save()
+                VStack { // enclosing VStack
                     
-                    // start game
-                    if !showAlert {
-                        gameStarted = true
+                    VStack(spacing: 40) {
+                        
+                        // players
+                        PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
+                        
+                        // game settings
+                        GameSettings(game: game)
+                        
+                        // game name
+                        GameNameView(
+                            gameName: $gameName,
+                            proxy: proxy
+                        )
+                        
+                    }
+                    .frame(width: 250)
+                    .padding(30)
+                    .background(Color.brown.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    
+                    Spacer()
+                    
+                    Button {
+                        
+                        // abstract this out to ViewModel
+                        
+                        // verify game is valid
+                        do {
+                            try viewModel.verifyGame(game: game)
+                        } catch let error as gameError {
+                            switch error {
+                            case .noPlayers:
+                                errorText = "Please add players before starting"
+                                showAlert = true
+                            case .tooManyPlayers:
+                                errorText = "There is a maximum of seven players"
+                                showAlert = true
+                            }
+                        } catch {
+                            errorText = "Unexpected error"
+                            showAlert = true
+                        }
+                        
+                        // if game is valid, add player names to player history
+                        game.players.forEach { player in
+                            viewModel.addPlayerName(player.name)
+                        }
+                        
+                        // similarly, add game name to gameNames
+                        gameName = gameName.trimmingCharacters(in: .whitespaces)
+                        if gameName != "" && !viewModel.gameNames.contains(where: { $0 == gameName }) {
+                            viewModel.gameNames.append(gameName)
+                        }
+                        
+                        game.name = gameName
+                        gameID = game.id
+                        
+                        // add the game to persistent memory
+                        context.insert(game)
+                        
+                        // try to save
+                        do {
+                            try context.save()
+                            
+                            // start game
+                            if !showAlert {
+                                gameStarted = true
+                            }
+                            
+                        } catch {
+                            print("unable to save game")
+                        }
+                    } label: {
+                        FullWidthButton(text: "Start")
+                            .padding(.horizontal)
+                    }
+                    .scaleEffect(startButtonPressed ? 0.9 : 1.0)
+                    .animation(.spring(), value: startButtonPressed)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0.0)
+                            .onChanged { _ in startButtonPressed = true }
+                            .onEnded { _ in startButtonPressed = false }
+                    )
+                    
+                    .sheet(isPresented: $newPlayerSheetShowing) {
+                        AddPlayerSheet(
+                            game: game,
+                            newPlayerSheetShowing: $newPlayerSheetShowing
+                        )
+                        .presentationDetents([.medium, .large])
                     }
                     
-                } catch {
-                    print("unable to save game")
+                    .alert("Error creating game", isPresented: $showAlert) {
+                        Button("OK") {}
+                    } message: {
+                        Text(errorText)
+                    }
                 }
-            } label: {
-                FullWidthButton(text: "Start")
-                    .padding(.horizontal)
-            }
-            .scaleEffect(startButtonPressed ? 0.9 : 1.0)
-            .animation(.spring(), value: startButtonPressed)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0.0)
-                    .onChanged { _ in startButtonPressed = true }
-                    .onEnded { _ in startButtonPressed = false }
-            )
-            
-            .sheet(isPresented: $newPlayerSheetShowing) {
-                AddPlayerSheet(
-                    game: game,
-                    newPlayerSheetShowing: $newPlayerSheetShowing
-                )
-                .presentationDetents([.medium, .large])
-            }
-            
-            .alert("Error creating game", isPresented: $showAlert) {
-                Button("OK") {}
-            } message: {
-                Text(errorText)
+                //.padding(.bottom, 200)
             }
         }
         
@@ -131,7 +140,7 @@ struct CreateGameView: View {
                 GameView(id: gameID)
                     .navigationBarBackButtonHidden()
             }
-        }
+        }        
     }
 }
 

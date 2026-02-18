@@ -20,13 +20,14 @@ struct GameNameView: View {
     var pickerOptions : [String] { viewModel.gameNames }
     
     var filteredOptions : [String] {
-        
          if gameName.isEmpty {
              return []
         } else {
             return pickerOptions.filter { $0.localizedCaseInsensitiveContains(gameName) }
         }
     }
+    
+    var proxy : ScrollViewProxy
     
     var body: some View {
         
@@ -41,11 +42,7 @@ struct GameNameView: View {
                         .padding(.vertical, 10)
                         .padding(.horizontal, 10)
                         .autocorrectionDisabled()
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.white.opacity(0.05))
-                                .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
-                        )
+                        .background(Color.darkAndLight)
                         .focused($isFocussed)
                         .toolbar {
                             ToolbarItemGroup(placement: .keyboard) {
@@ -70,11 +67,13 @@ struct GameNameView: View {
                     }
                     
                 }
+                .id("gameNameTextField")
                 .padding(.bottom, isExpanded ? 5 : 0)
                 
                 if isExpanded {
                     ForEach(filteredOptions.indices, id: \.self) { index in
                         let option = filteredOptions[index]
+                        
                         Text(option)
                             .font(.system(size: 16.0))
                             .padding(.vertical, 8)
@@ -87,15 +86,13 @@ struct GameNameView: View {
                                 
                                 gameName = option
                                 isFocussed = false
-                                isExpanded = false
                                 
-                                /*
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                                     withAnimation {
                                         isExpanded = false
                                     }
                                 }
-                                */
+                                
                             }
                     }
                     .padding(.horizontal, 10)
@@ -119,9 +116,14 @@ struct GameNameView: View {
         }
         .onChange(of: isFocussed) {
             if isFocussed {
-                withAnimation {
-                    isExpanded = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    
+                    withAnimation {
+                        proxy.scrollTo("gameNameTextField", anchor: .center)
+                        isExpanded = true
+                    }
                 }
+                
             } else {
                 withAnimation {
                     isExpanded = false
@@ -132,7 +134,12 @@ struct GameNameView: View {
 }
 
 #Preview {
-    GameNameView(gameName: .constant(""))
+    ScrollViewReader { proxy in
+        GameNameView(
+            gameName: .constant(""),
+            proxy: proxy
+        )
+    }
         .environmentObject(ViewModel())
         .modelContainer(for: [Game.self, Player.self], inMemory: true) { result in
             if case .success(let container) = result {

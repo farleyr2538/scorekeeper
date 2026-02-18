@@ -11,6 +11,151 @@ import SwiftData
 typealias Player = SchemaV4.Player
 typealias Game = SchemaV4.Game
 
+/*
+enum SchemaV5: VersionedSchema { // CloudKit compatible version
+    
+    static var versionIdentifier: Schema.Version {
+        Schema.Version(5, 0, 0)
+    }
+    
+    static var models: [any PersistentModel.Type] { [Game.self, Player.self] }
+    
+    @Model
+    class Player: Identifiable, Hashable {
+        
+        var id: UUID = UUID()
+        
+        var name: String = ""
+        
+        var scores: [Int] = []
+        var runningScores: [Int] = []
+        
+        var game : Game?
+           
+        var total: Int {
+            scores.reduce(0, +)
+        }
+        var average: Double {
+            Double(total) / Double(scores.count(where: { $0 > 0 }))
+        }
+        
+        var filteredScores: [Int] {
+            scores.filter( { $0 >= 0 } )
+        }
+        
+        init(name: String, scores: [Int], runningScores: [Int]) {
+            self.id = UUID()
+            self.name = name
+            self.scores = scores
+            self.runningScores = runningScores
+        }
+        
+        static func == (lhs: Player, rhs: Player) -> Bool {
+            lhs.id == rhs.id
+        }
+
+        // Hash into the hasher using the unique identifier.
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+    }
+
+    @Model
+    class Game {
+        
+        var id : UUID = UUID()
+        
+        @Relationship(deleteRule: .cascade, inverse: \Player.game)
+        var players: [Player]? = []
+        
+        var name: String?
+        var date = Date()
+        var halving = true
+        var lowestWins = true
+        var roundsPlayed = 0
+        
+        init(players: [Player], name: String? = nil, date: Date = Date(), halving: Bool, lowestWins: Bool = true, roundsPlayed: Int = 0) {
+            self.id = UUID()
+            self.players = players
+            self.name = name
+            self.halving = halving
+            
+            self.date = date
+            self.lowestWins = lowestWins
+            self.roundsPlayed = roundsPlayed
+        }
+        
+        var winners : [Player] {
+            // find the current winner(s) in any given game.
+            var winners: [Player] = []
+            var winningScore: Int? = nil
+            
+            guard let players else { return winners }
+            
+            if lowestWins { // if lowest score wins
+                for player in players { // for each player
+                    if winningScore != nil { // if there is an existing winner
+                        if player.total == winningScore! { // if this player's score is THE SAME AS the current winning score
+                            winners.append(player) // add joint winner
+                        } else if player.total < winningScore! { // or if this player's score is LESS THAN the current winning score
+                            winners = [player] // then we have a new winnner!
+                            winningScore = player.total // update winningScore
+                        }
+                    } else { // winningScore is nil; therefore player's score is always winning
+                        winners = [player]
+                        winningScore = player.total
+                    }
+                }
+            } else { // same but for higher scores
+                for player in players {
+                    if winningScore != nil {
+                        if player.total == winningScore! {
+                            winners.append(player)
+                        } else if player.total > winningScore! {
+                            winners = [player]
+                            winningScore = player.total
+                        }
+                    } else {
+                        winners = [player]
+                        winningScore = player.total
+                    }
+                }
+            }
+            
+            return winners
+        }
+        
+        var calculatedRoundsPlayed : Int? {
+            
+            var collectionOfRounds: [Int] = []
+            
+            guard let players else { return nil }
+            
+            for player in players {
+                // count non-negative scores
+                var nonNegativeCounter = 0
+                for score in player.scores {
+                    if score >= 0 {
+                        nonNegativeCounter += 1
+                    }
+                }
+                collectionOfRounds.append(nonNegativeCounter)
+                
+            }
+            // if they are not all the same, defer to roundsPlayed
+            let setVersion = Set(collectionOfRounds)
+            if setVersion.count == 1 {
+                return collectionOfRounds.first
+            } else {
+                return nil
+            }
+        }
+        
+    }
+    
+}
+*/
+
 enum SchemaV4: VersionedSchema {
     
     static var versionIdentifier: Schema.Version {
@@ -36,7 +181,7 @@ enum SchemaV4: VersionedSchema {
             Double(total) / Double(scores.count(where: { $0 > 0 }))
         }
         
-        var filteredSocres: [Int] {
+        var filteredScores: [Int] {
             scores.filter( { $0 >= 0 } )
         }
         
@@ -340,13 +485,14 @@ enum SchemaV1: VersionedSchema {
 
 enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV2.self, SchemaV3.self, SchemaV4.self]
+        [SchemaV2.self, SchemaV3.self, SchemaV4.self, /*SchemaV5.self*/]
     }
     
     static var stages: [MigrationStage] {
         [
             migrateV2ToV3,
-            migrateV3ToV4
+            migrateV3ToV4,
+            // migrateV4ToV5
         ]
     }
     
@@ -359,9 +505,16 @@ enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
         fromVersion: SchemaV3.self,
         toVersion: SchemaV4.self
     )
+    
+    /*
+    static let migrateV4ToV5 = MigrationStage.lightweight(
+        fromVersion: SchemaV4.self,
+        toVersion: SchemaV5.self
+    )
+     */
 }
 
-extension SchemaV4.Game {
+extension Game {
     static var sampleGames : [Game] {
         [
             Game(

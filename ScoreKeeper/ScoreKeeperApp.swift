@@ -7,45 +7,48 @@
 
 import SwiftUI
 import SwiftData
+import CloudKit
 
 @main
 struct ScoreKeeperApp: App {
     
     let sharedModelContainer : ModelContainer
+    let containerLoadFailed : Bool
     
     init() {
+        
+        /*
+         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+         */
                     
         do {
-            let config = ModelConfiguration(isStoredInMemoryOnly: false)
+            
+            let config = ModelConfiguration(
+                isStoredInMemoryOnly: false,
+                // cloudKitDatabase: isPreview ? .none : .automatic
+            )
+            
             sharedModelContainer = try ModelContainer(
                 for: Game.self, Player.self,
                 migrationPlan: ScoreKeeperMigrationPlan.self,
                 configurations: config
             )
+            
             sharedModelContainer.mainContext.autosaveEnabled = true
+            
+            containerLoadFailed = false
+            
         } catch {
-            // schema mismatch or load error: delete old store and retry
-            print("Schema mismatch detected. Deleting old store due to incompatibility: \(error)")
             
-            // get the default store URL (assuming default configuration; customize if you use a named store)
-            let defaultConfig = ModelConfiguration()
-            let storeURL = defaultConfig.url
+            print("ModelContainer failed to load: \(error)")
             
-            let fileManager = FileManager.default
-            // delete main store and support files ( WAL and SHM for SQLite)
-            try? fileManager.removeItem(at: storeURL)
-            try? fileManager.removeItem(at: storeURL.appendingPathExtension("shm"))
-            try? fileManager.removeItem(at: storeURL.appendingPathExtension("wal"))
+            sharedModelContainer = try! ModelContainer(
+                for: Game.self, Player.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
             
-            // retry creation (should succeed with fresh store)
-            do {
-                sharedModelContainer = try ModelContainer(
-                    for: Game.self, Player.self,
-                    migrationPlan: ScoreKeeperMigrationPlan.self
-                )
-            } catch {
-                fatalError("Failed to delete and recreate ModelContainer: \(error)")
-            }
+            containerLoadFailed = true
+            
         }
     }
     
@@ -53,8 +56,17 @@ struct ScoreKeeperApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(viewModel)
+            if containerLoadFailed {
+                ContentUnavailableView(
+                    "Data Error",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("There was a problem loading your data. Please reinstall the app.")
+                
+                )
+            } else {
+                ContentView()
+                    .environmentObject(viewModel)
+            }
         }
         .modelContainer(sharedModelContainer)
     }

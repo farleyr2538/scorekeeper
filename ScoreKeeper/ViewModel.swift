@@ -51,10 +51,8 @@ class ViewModel : ObservableObject {
     
     func addPlayerName(_ name: String) {
             let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmedName.isEmpty && !allPlayers.contains(trimmedName) {
+            if !trimmedName.isEmpty {
                 allPlayers.append(trimmedName)
-                allPlayers.sort() // Keep the list sorted alphabetically
-                // print("Added '\(trimmedName)' to allKnownPlayerNames. Current count: \(allPlayers.count)")
             }
         }
     

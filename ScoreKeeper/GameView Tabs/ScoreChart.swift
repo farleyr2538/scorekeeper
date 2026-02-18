@@ -13,8 +13,7 @@ struct ScoreChart: View {
     @Bindable var game : Game
     
     var body: some View {
-        
-            
+                
         LazyVStack {
             
             Group {
