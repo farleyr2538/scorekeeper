@@ -22,7 +22,7 @@ struct ContentView: View {
         NavigationStack {
             
             Spacer()
-                
+                            
             HStack {
                 ZStack(alignment: .leading) {
                     Text("Score")

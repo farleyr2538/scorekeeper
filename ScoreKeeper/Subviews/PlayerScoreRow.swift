@@ -18,17 +18,22 @@ struct PlayerScoreRow: View {
     
     var body: some View {
         HStack {
+            
             Text(player.name)
+            
             Spacer()
+            
             if (isNegative) {
                 Text("-")
             }
+            
             TextField("0", text: $scoreBuffer)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 75)
-                .keyboardType(.numberPad)
+                .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 //.focused($focusedField, equals: index)
+            
             if isNegative {
                 Button("-/+") {
                     isNegative.toggle()

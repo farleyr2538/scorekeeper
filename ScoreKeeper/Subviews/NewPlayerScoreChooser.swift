@@ -14,7 +14,7 @@ struct NewPlayerScoreChooser: View {
     @Bindable var game : Game
     @Binding var startScoreMode : StartScoreMode
     
-    @State var avgScoreForDisplay : Int = 0
+    @State var avgScoreForDisplay : Double = 0
     
     var body: some View {
         HStack {

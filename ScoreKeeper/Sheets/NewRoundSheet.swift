@@ -18,7 +18,7 @@ struct NewRoundSheet: View {
     @Binding var newRoundSheetShowing : Bool
     
     @State var scoreBuffers : [String] = []
-    @State var scores : [Int] = []
+    @State var scores : [Double] = []
     
     // error
     @State var errorMessage : String = ""
@@ -62,9 +62,9 @@ struct NewRoundSheet: View {
                         currentGame.players.indices.forEach { index in
                             
                             // a copy of this player's score this round
-                            if let nominalScore = Int(scoreBuffers[index]) {
+                            if let nominalScore = Double(scoreBuffers[index]) {
                                 
-                                var realScore : Int
+                                var realScore : Double
                                 
                                 if indexOfNegativeNumbers.contains(index) {
                                     realScore = 0 - nominalScore

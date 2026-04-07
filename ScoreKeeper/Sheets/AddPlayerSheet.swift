@@ -64,9 +64,9 @@ struct AddPlayerSheet: View {
         
         NavigationStack {
         
-            ScrollView {
+            VStack {
                 
-                // add custom players VStack
+                // custom players VStack
                 VStack {
                     
                     HStack {
@@ -117,19 +117,21 @@ struct AddPlayerSheet: View {
                                 
                                 if useContext == .midGame {
                                     
-                                    let numberOfRounds = game.roundsPlayed - 1
+                                    let numberOfRounds = game.roundsPlayed
                                     print("numberOfRounds: " + String(numberOfRounds))
                                     
-                                    // add zeros for numberOfRounds (so far)
-                                    for _ in 1 ..< numberOfRounds {
-                                        viewModel.addScore(
-                                            player: newPlayer,
-                                            score: 0,
-                                            halving: false
-                                        )
+                                    // add zeros for all rounds played so far (except the current one)
+                                    if numberOfRounds > 0 {
+                                        for _ in 0 ..< (numberOfRounds - 1) {
+                                            viewModel.addScore(
+                                                player: newPlayer,
+                                                score: 0,
+                                                halving: false
+                                            )
+                                        }
                                     }
                                     
-                                    let firstScore : Int
+                                    let firstScore : Double
                                     
                                     if startScoreMode == .averageScore {
                                         firstScore = viewModel.getAverageScore(game: game)
@@ -218,7 +220,7 @@ struct AddPlayerSheet: View {
                 
                 Spacer()
                 
-            }
+            } // end of ScrollView
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {

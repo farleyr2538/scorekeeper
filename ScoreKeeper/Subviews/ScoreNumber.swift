@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ScoreNumber: View {
     
-    let score : Int
+    let score : Double
     let context : Context
     let roundIndex : Int
     
@@ -26,9 +26,18 @@ struct ScoreNumber: View {
         }
     }
     
+    var formattedScore: String {
+        // If the score is a whole number, display without decimals
+        if score.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(Int(score))
+        } else {
+            return String(score)
+        }
+    }
+    
     var body: some View {
             
-        Text("\(score)")
+        Text(formattedScore)
         //.font(.system(size: 20, weight: .regular))
             .padding(.bottom, 1)
             .foregroundStyle(shouldHighlightZeros ? Color.orange : Color.primary)

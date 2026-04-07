@@ -17,8 +17,8 @@ struct ScoresGrid: View {
     
     @State var playerToEdit : Player = Player(name: "", scores: [], runningScores: [])
     
-    var minScore : Int {
-        var minSoFar : Int = game.players.first!.total
+    var minScore : Double {
+        var minSoFar : Double = game.players.first!.total
         game.players.forEach { player in
             if player.total < minSoFar {
                 minSoFar = player.total
@@ -27,8 +27,8 @@ struct ScoresGrid: View {
         return minSoFar
     }
     
-    var maxScore : Int {
-        var maxSoFar : Int = game.players.first!.total
+    var maxScore : Double {
+        var maxSoFar : Double = game.players.first!.total
         game.players.forEach { player in
             if player.total > maxSoFar {
                 maxSoFar = player.total
@@ -38,6 +38,14 @@ struct ScoresGrid: View {
     }
     
     var grey : Bool = false
+    
+    func formatScore(_ score: Double) -> String {
+        if score.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(Int(score))
+        } else {
+            return String(score)
+        }
+    }
     
     var body: some View {
         
@@ -132,7 +140,7 @@ struct ScoresGrid: View {
                 
                 GridRow {
                     ForEach(game.players, id: \.self) { player in
-                        Text("\(player.total)")
+                        Text(formatScore(player.total))
                     }
                 }
                 .bold()

@@ -34,7 +34,7 @@ struct EditGameSheet: View {
     var body: some View {
         
         NavigationStack {
-
+            
             // ScrollView {
                 
                 VStack {
@@ -170,12 +170,14 @@ struct EditGameSheet: View {
                         }
                         .padding(.vertical)
                         
-                        //Spacer()
                     }
+                    
+                    Spacer()
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 40)
-            //}
+                
+            // } // end of ScrollView
             
             
         }

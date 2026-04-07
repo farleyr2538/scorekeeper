@@ -31,6 +31,8 @@ class ViewModel : ObservableObject {
         }
     }
     
+    // private let isFirstTimeUsing : Bool
+    
     init() {
         
         // load existing game names, if possible
@@ -67,13 +69,13 @@ class ViewModel : ObservableObject {
         let lastScoreIndex = scoreCount - 1
         
         if let mostRecentTotal = player.runningScores.last {
-            let newTotal = mostRecentTotal / 2
+            let newTotal = mostRecentTotal / 2.0
             player.runningScores[lastScoreIndex] = newTotal
         }
     }
     
     // add a score to both a player's scores and runningScores. half, if necessary.
-    func addScore(player: Player, score: Int, halving: Bool) {
+    func addScore(player: Player, score: Double, halving: Bool) {
         
         // SCORES
         var currentScores = player.scores
@@ -83,10 +85,10 @@ class ViewModel : ObservableObject {
         if (
             halving // halving is on
             && sum != 0 // current score is not 0
-            && sum % 50 == 0 // score is a multiple of 50
+            && sum.truncatingRemainder(dividingBy: 50) == 0 // score is a multiple of 50
             && score != 0 // score this round is not 0
         ) {
-            let reductionAmount = sum / 2
+            let reductionAmount = sum / 2.0
             let reduction = 0 - reductionAmount
             currentScores.append(reduction)
         }
@@ -96,7 +98,7 @@ class ViewModel : ObservableObject {
         
         
         // RUNNING SCORES
-        var newTotal : Int
+        var newTotal : Double
         var runningScores = player.runningScores
         
         // if there are already values in runningScores, add this rounds score to the existing running total
@@ -112,10 +114,10 @@ class ViewModel : ObservableObject {
         if (
             halving // halving is on
             && newTotal != 0 // new total score is not 0 (although this is impossible if this rounds score is not 0)
-            && newTotal % 50 == 0 // new total score is a multiple of 50
+            && newTotal.truncatingRemainder(dividingBy: 50) == 0 // new total score is a multiple of 50
             && score != 0 // this rounds score is not 0
         ) {
-            newTotal /= 2
+            newTotal /= 2.0
         }
         
         // add new total to runningScores
@@ -126,18 +128,17 @@ class ViewModel : ObservableObject {
         
     }
     
-    func getAverageScore(game: Game) -> Int {
+    func getAverageScore(game: Game) -> Double {
         // get the avg of the other players' scores
-        var scoresAdded = 0
+        var scoresAdded: Double = 0
     
         game.players.forEach { player in
             scoresAdded += player.total
         }
         
         if scoresAdded > 0 {
-            let avgScoreDouble : Double = Double(scoresAdded) / Double(game.players.count)
-            let avgScore = Int(ceil(avgScoreDouble))
-            return avgScore
+            let avgScore = scoresAdded / Double(game.players.count)
+            return ceil(avgScore)
         } else {
             return 0
         }
@@ -169,8 +170,8 @@ class ViewModel : ObservableObject {
         
         if halving {
             // add negatives back in, in the right places
-            var scoresRunningTotal = 0
-            var newScoresWithHalving: [Int] = []
+            var scoresRunningTotal: Double = 0
+            var newScoresWithHalving: [Double] = []
             
             for score in scoresWithoutNegatives {
                 
@@ -179,11 +180,11 @@ class ViewModel : ObservableObject {
                 
                 // check for need to halve
                 if (
-                    scoresRunningTotal % 50 == 0
+                    scoresRunningTotal.truncatingRemainder(dividingBy: 50) == 0
                     && scoresRunningTotal > 0
                     && score > 0
                 ) {
-                    let reductionValue = 0 - (scoresRunningTotal / 2)
+                    let reductionValue = 0 - (scoresRunningTotal / 2.0)
                     newScoresWithHalving.append(reductionValue)
                 }
                 
@@ -196,7 +197,7 @@ class ViewModel : ObservableObject {
         // re-calculate runningScores
         player.runningScores.removeAll()
         
-        var runningTotal = 0
+        var runningTotal: Double = 0
         
         scoresWithoutNegatives.forEach { score in
             
@@ -208,9 +209,9 @@ class ViewModel : ObservableObject {
                 halving &&
                 runningTotal > 0 &&
                 score > 0 &&
-                runningTotal % 50 == 0
+                runningTotal.truncatingRemainder(dividingBy: 50) == 0
             ) {
-                runningTotal = runningTotal / 2
+                runningTotal = runningTotal / 2.0
             }
             player.runningScores.append(runningTotal)
         }
@@ -224,7 +225,15 @@ class ViewModel : ObservableObject {
             if roundIndex < calculatedRoundsPlayed {
                 game.players.forEach { player in
                     let score = player.scores[roundIndex]
-                    let stringScore = String(score)
+                    // Format the double, removing unnecessary decimal places
+                    let stringScore: String
+                    if score.truncatingRemainder(dividingBy: 1) == 0 {
+                        // It's a whole number, show without decimals
+                        stringScore = String(Int(score))
+                    } else {
+                        // It has decimal places
+                        stringScore = String(score)
+                    }
                     theScores.append(stringScore)
                 }
                 return theScores
@@ -244,7 +253,7 @@ class ViewModel : ObservableObject {
     func checkRoundInput(scoreBuffers: [String]) -> Bool {
         var validInput : Bool = true
         scoreBuffers.forEach { scoreBuffer in
-            if scoreBuffer.isEmpty || Int(scoreBuffer) == nil {
+            if scoreBuffer.isEmpty || Double(scoreBuffer) == nil {
                 validInput = false
             }
         }

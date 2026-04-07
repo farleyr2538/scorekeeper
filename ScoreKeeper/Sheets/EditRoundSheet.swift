@@ -58,7 +58,7 @@ struct EditRoundSheet: View {
                     // edit each player's scores array accordingly
                     
                     // for the index of each player...
-                if let newScore = Int(currentScoreString) {
+                if let newScore = Double(currentScoreString) {
                     playerToEdit.scores[roundIndex] = newScore
                 }
                 
@@ -81,7 +81,12 @@ struct EditRoundSheet: View {
         .padding(.horizontal)
         
         .onAppear {
-            currentScoreString = String(currentScore)
+            // Format the score nicely for display
+            if currentScore.truncatingRemainder(dividingBy: 1) == 0 {
+                currentScoreString = String(Int(currentScore))
+            } else {
+                currentScoreString = String(currentScore)
+            }
         }
         
         .alert("Error", isPresented: $isError) {

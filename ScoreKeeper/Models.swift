@@ -8,11 +8,10 @@
 import Foundation
 import SwiftData
 
-typealias Player = SchemaV4.Player
-typealias Game = SchemaV4.Game
+typealias Player = SchemaV5.Player
+typealias Game = SchemaV5.Game
 
-/*
-enum SchemaV5: VersionedSchema { // CloudKit compatible version
+enum SchemaV5: VersionedSchema {
     
     static var versionIdentifier: Schema.Version {
         Schema.Version(5, 0, 0)
@@ -23,27 +22,25 @@ enum SchemaV5: VersionedSchema { // CloudKit compatible version
     @Model
     class Player: Identifiable, Hashable {
         
-        var id: UUID = UUID()
+        var id: UUID
         
-        var name: String = ""
+        var name: String
         
-        var scores: [Int] = []
-        var runningScores: [Int] = []
-        
-        var game : Game?
+        var scores: [Double] = []
+        var runningScores: [Double] = []
            
-        var total: Int {
+        var total: Double {
             scores.reduce(0, +)
         }
         var average: Double {
-            Double(total) / Double(scores.count(where: { $0 > 0 }))
+            total / Double(scores.count(where: { $0 > 0 }))
         }
         
-        var filteredScores: [Int] {
+        var filteredScores: [Double] {
             scores.filter( { $0 >= 0 } )
         }
         
-        init(name: String, scores: [Int], runningScores: [Int]) {
+        init(name: String, scores: [Double], runningScores: [Double]) {
             self.id = UUID()
             self.name = name
             self.scores = scores
@@ -63,10 +60,10 @@ enum SchemaV5: VersionedSchema { // CloudKit compatible version
     @Model
     class Game {
         
-        var id : UUID = UUID()
+        var id : UUID
         
-        @Relationship(deleteRule: .cascade, inverse: \Player.game)
-        var players: [Player]? = []
+        @Relationship(deleteRule: .cascade)
+        var players: [Player] = []
         
         var name: String?
         var date = Date()
@@ -88,9 +85,7 @@ enum SchemaV5: VersionedSchema { // CloudKit compatible version
         var winners : [Player] {
             // find the current winner(s) in any given game.
             var winners: [Player] = []
-            var winningScore: Int? = nil
-            
-            guard let players else { return winners }
+            var winningScore: Double? = nil
             
             if lowestWins { // if lowest score wins
                 for player in players { // for each player
@@ -115,7 +110,7 @@ enum SchemaV5: VersionedSchema { // CloudKit compatible version
                             winners = [player]
                             winningScore = player.total
                         }
-                    } else {
+                    } else { 
                         winners = [player]
                         winningScore = player.total
                     }
@@ -128,8 +123,6 @@ enum SchemaV5: VersionedSchema { // CloudKit compatible version
         var calculatedRoundsPlayed : Int? {
             
             var collectionOfRounds: [Int] = []
-            
-            guard let players else { return nil }
             
             for player in players {
                 // count non-negative scores
@@ -154,7 +147,6 @@ enum SchemaV5: VersionedSchema { // CloudKit compatible version
     }
     
 }
-*/
 
 enum SchemaV4: VersionedSchema {
     
@@ -485,14 +477,14 @@ enum SchemaV1: VersionedSchema {
 
 enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV2.self, SchemaV3.self, SchemaV4.self, /*SchemaV5.self*/]
+        [SchemaV2.self, SchemaV3.self, SchemaV4.self, SchemaV5.self]
     }
     
     static var stages: [MigrationStage] {
         [
             migrateV2ToV3,
             migrateV3ToV4,
-            // migrateV4ToV5
+            migrateV4ToV5
         ]
     }
     
@@ -506,12 +498,73 @@ enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
         toVersion: SchemaV4.self
     )
     
-    /*
-    static let migrateV4ToV5 = MigrationStage.lightweight(
+    static let migrateV4ToV5 = MigrationStage.custom(
         fromVersion: SchemaV4.self,
-        toVersion: SchemaV5.self
+        toVersion: SchemaV5.self,
+        willMigrate: nil,
+        didMigrate: { context in
+            // Fetch all V4 players from the context
+            let playerFetchDescriptor = FetchDescriptor<SchemaV4.Player>()
+            let oldPlayers = try context.fetch(playerFetchDescriptor)
+            
+            // For each V4 player, create a new V5 player with converted scores
+            for oldPlayer in oldPlayers {
+                let newScores = oldPlayer.scores.map { Double($0) }
+                let newRunningScores = oldPlayer.runningScores.map { Double($0) }
+                
+                let newPlayer = SchemaV5.Player(
+                    name: oldPlayer.name,
+                    scores: newScores,
+                    runningScores: newRunningScores
+                )
+                newPlayer.id = oldPlayer.id
+                
+                context.insert(newPlayer)
+            }
+            
+            // Fetch all V4 games and recreate them with V5 players
+            let gameFetchDescriptor = FetchDescriptor<SchemaV4.Game>()
+            let oldGames = try context.fetch(gameFetchDescriptor)
+            
+            for oldGame in oldGames {
+                // Map old player IDs to new players
+                let newPlayers = oldGame.players.compactMap { oldPlayer -> SchemaV5.Player? in
+                    let playerId = oldPlayer.id
+                    let descriptor = FetchDescriptor<SchemaV5.Player>(
+                        predicate: #Predicate { $0.id == playerId }
+                    )
+                    return try? context.fetch(descriptor).first
+                }
+                
+                let newGame = SchemaV5.Game(
+                    players: newPlayers,
+                    name: oldGame.name,
+                    date: oldGame.date,
+                    halving: oldGame.halving,
+                    lowestWins: oldGame.lowestWins,
+                    roundsPlayed: oldGame.roundsPlayed
+                )
+                newGame.id = oldGame.id
+                
+                context.insert(newGame)
+            }
+            
+            // Save new data first - if this fails, the migration will throw
+            // and old data will remain intact
+            try context.save()
+            
+            // Only delete old data after successful save
+            for oldPlayer in oldPlayers {
+                context.delete(oldPlayer)
+            }
+            for oldGame in oldGames {
+                context.delete(oldGame)
+            }
+            
+            // Final save to commit deletions
+            try context.save()
+        }
     )
-     */
 }
 
 extension Game {
@@ -521,18 +574,18 @@ extension Game {
                 players: [
                     Player(
                         name: "Rob",
-                        scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
-                        runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
+                        scores: [29.0, 0.0, 14.0, 0.0, 15.0, 21.0, 2.0, 10.0, 0.0, 0.0, 5.0, 10.0, 35.0, 15.0, 0.0, 0.0, 0.0],
+                        runningScores: [29.0, 29.0, 43.0, 43.0, 58.0, 79.0, 81.0, 91.0, 91.0, 91.0, 96.0, 106.0, 141.0, 156.0, 156.0, 156.0, 156.0]
                     ),
                     Player(
                         name: "Flora",
-                        scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
-                        runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
+                        scores: [36.0, 13.0, 16.0, 13.0, 24.0, 21.0, 6.0, 0.0, 30.0, 36.0, 13.0, 49.0, 3.0, 39.0, 7.0, 45.0, 14.0],
+                        runningScores: [36.0, 49.0, 65.0, 78.0, 102.0, 123.0, 129.0, 129.0, 159.0, 195.0, 208.0, 257.0, 260.0, 299.0, 306.0, 351.0, 365.0]
                     ),
                     Player(
                         name: "Vnesh",
-                        scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
-                        runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
+                        scores: [0.0, 3.0, 0.0, 7.0, 0.0, 0.0, 0.0, 26.0, 9.0, 12.0, 0.0, 0.0, 11.0, 0.0, 7.0, 6.0, 19.0],
+                        runningScores: [0.0, 3.0, 3.0, 10.0, 10.0, 10.0, 10.0, 36.0, 45.0, 57.0, 57.0, 57.0, 68.0, 68.0, 75.0, 81.0, 100.0]
                     )
                 ],
                 name: "Yaniv",
@@ -543,18 +596,18 @@ extension Game {
                 players: [
                     Player(
                         name: "Rob",
-                        scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
-                        runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
+                        scores: [29.0, 0.0, 14.0, 0.0, 15.0, 21.0, 2.0, 10.0, 0.0, 0.0, 5.0, 10.0, 35.0, 15.0, 0.0, 0.0, 0.0],
+                        runningScores: [29.0, 29.0, 43.0, 43.0, 58.0, 79.0, 81.0, 91.0, 91.0, 91.0, 96.0, 106.0, 141.0, 156.0, 156.0, 156.0, 156.0]
                     ),
                     Player(
                         name: "Flora",
-                        scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
-                        runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
+                        scores: [36.0, 13.0, 16.0, 13.0, 24.0, 21.0, 6.0, 0.0, 30.0, 36.0, 13.0, 49.0, 3.0, 39.0, 7.0, 45.0, 14.0],
+                        runningScores: [36.0, 49.0, 65.0, 78.0, 102.0, 123.0, 129.0, 129.0, 159.0, 195.0, 208.0, 257.0, 260.0, 299.0, 306.0, 351.0, 365.0]
                     ),
                     Player(
                         name: "Vnesh",
-                        scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
-                        runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
+                        scores: [0.0, 3.0, 0.0, 7.0, 0.0, 0.0, 0.0, 26.0, 9.0, 12.0, 0.0, 0.0, 11.0, 0.0, 7.0, 6.0, 19.0],
+                        runningScores: [0.0, 3.0, 3.0, 10.0, 10.0, 10.0, 10.0, 36.0, 45.0, 57.0, 57.0, 57.0, 68.0, 68.0, 75.0, 81.0, 100.0]
                     )
                 ],
                 halving: true,
@@ -563,18 +616,18 @@ extension Game {
             Game(players: [
                     Player(
                         name: "Rob",
-                        scores: [29, 0, 14, 0, 15, 21, 2, 10, 0, 0, 5, 10, 35, 15, 0, 0, 0],
-                        runningScores: [29, 29, 43, 43, 58, 79, 81, 91, 91, 91, 96, 106, 141, 156, 156, 156, 156]
+                        scores: [29.0, 0.0, 14.0, 0.0, 15.0, 21.0, 2.0, 10.0, 0.0, 0.0, 5.0, 10.0, 35.0, 15.0, 0.0, 0.0, 0.0],
+                        runningScores: [29.0, 29.0, 43.0, 43.0, 58.0, 79.0, 81.0, 91.0, 91.0, 91.0, 96.0, 106.0, 141.0, 156.0, 156.0, 156.0, 156.0]
                     ),
                     Player(
                         name: "Flora",
-                        scores: [36, 13, 16, 13, 24, 21, 6, 0, 30, 36, 13, 49, 3, 39, 7, 45, 14],
-                        runningScores: [36, 49, 65, 78, 102, 123, 129, 129, 159, 195, 208, 257, 260, 299, 306, 351, 365]
+                        scores: [36.0, 13.0, 16.0, 13.0, 24.0, 21.0, 6.0, 0.0, 30.0, 36.0, 13.0, 49.0, 3.0, 39.0, 7.0, 45.0, 14.0],
+                        runningScores: [36.0, 49.0, 65.0, 78.0, 102.0, 123.0, 129.0, 129.0, 159.0, 195.0, 208.0, 257.0, 260.0, 299.0, 306.0, 351.0, 365.0]
                     ),
                     Player(
                         name: "Vnesh",
-                        scores: [0, 3, 0, 7, 0, 0, 0, 26, 9, 12, 0, 0, 11, 0, 7, 6, 19],
-                        runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
+                        scores: [0.0, 3.0, 0.0, 7.0, 0.0, 0.0, 0.0, 26.0, 9.0, 12.0, 0.0, 0.0, 11.0, 0.0, 7.0, 6.0, 19.0],
+                        runningScores: [0.0, 3.0, 3.0, 10.0, 10.0, 10.0, 10.0, 36.0, 45.0, 57.0, 57.0, 57.0, 68.0, 68.0, 75.0, 81.0, 100.0]
                     )
                 ],
                  name: "Dixit",

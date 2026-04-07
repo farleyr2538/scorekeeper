@@ -109,6 +109,7 @@ struct CreateGameView: View {
                         FullWidthButton(text: "Start")
                             .padding(.horizontal)
                     }
+                    .padding(.vertical)
                     .scaleEffect(startButtonPressed ? 0.9 : 1.0)
                     .animation(.spring(), value: startButtonPressed)
                     .simultaneousGesture(

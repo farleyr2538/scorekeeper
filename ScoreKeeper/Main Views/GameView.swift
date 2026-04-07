@@ -41,6 +41,8 @@ struct GameView: View {
     @State var isError : Bool = false
     @State var errorMessage : String = ""
     
+    @State var editGameSheetDetent: PresentationDetent = .medium
+    
     var id : UUID
     
     @Query var games : [Game]
@@ -179,7 +181,7 @@ struct GameView: View {
                     newPlayerSheetShowing: $newPlayerSheetShowing,
                     useContext: .midGame
                 )
-                .presentationDetents([.large])
+                .presentationDetents([.medium, .large])
             }
             
             // edit game sheet
@@ -191,8 +193,10 @@ struct GameView: View {
                     halving: $halving,
                     editGameSheetShowing: $editGameSheetShowing
                 )
+                .presentationDetents([.medium, .large], selection: $editGameSheetDetent)
+                .presentationDragIndicator(.visible)
             }
-            .presentationDetents([.medium, .large])
+            
             
         } else {
             Group {

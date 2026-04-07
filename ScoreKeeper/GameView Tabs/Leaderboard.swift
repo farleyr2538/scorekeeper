@@ -12,6 +12,14 @@ struct Leaderboard: View {
     @EnvironmentObject var viewModel : ViewModel
     @Bindable var game : Game
     
+    func formatScore(_ score: Double) -> String {
+        if score.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(Int(score))
+        } else {
+            return String(score)
+        }
+    }
+    
     var body: some View {
         
         let length = game.players.count
@@ -45,7 +53,7 @@ struct Leaderboard: View {
                                 .foregroundStyle(.yellow)
                         }
                         Spacer()
-                        Text(String(player.total))
+                        Text(formatScore(player.total))
                     }
                     
                     // .padding(.bottom, index == length - 1 ? 10 : 0)

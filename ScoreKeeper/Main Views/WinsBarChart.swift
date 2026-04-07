@@ -49,6 +49,7 @@ struct WinsBarChart: View {
             }
             .pickerStyle(.menu)
         }
+        .padding()
         .navigationTitle("Game History Statistics")
         
     }
