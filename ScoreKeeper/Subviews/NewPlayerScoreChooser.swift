@@ -17,49 +17,38 @@ struct NewPlayerScoreChooser: View {
     @State var avgScoreForDisplay : Double = 0
     
     var body: some View {
+        
         HStack {
+            
             VStack(alignment: .leading, spacing: 10) {
+                
                 Text("New Player's Score:")
                     .font(.title3)
-                HStack {
-                    if startScoreMode == .averageScore {
-                        Image(systemName: "checkmark.circle")
-                            .foregroundStyle(.blue)
-                            .opacity(1.0)
-                    } else {
-                        Image(systemName: "circle")
-                            .foregroundStyle(.gray)
-                            .opacity(0.4)
-                    }
-                    Text("Average Score")
-                    Text("(" + String(avgScoreForDisplay) + ")")
-                        .foregroundStyle(.gray)
-                }
+                
+                SelectableOption(
+                    text: "Average Score",
+                    score: avgScoreForDisplay,
+                    selected: startScoreMode == .averageScore
+                )
                 .onTapGesture {
                     startScoreMode = .averageScore
                 }
-                .onAppear {
-                    avgScoreForDisplay = viewModel.getAverageScore(game: game)
-                }
-                HStack {
-                    if startScoreMode == .startAtZero {
-                        Image(systemName: "checkmark.circle")
-                            .foregroundStyle(.blue)
-                            .opacity(1)
-                    } else {
-                        Image(systemName: "circle")
-                            .foregroundStyle(.gray)
-                            .opacity(0.4)
-                    }
-                    Text("Start at 0")
-                }
+                
+                SelectableOption(
+                    text: "Start at 0",
+                    selected: startScoreMode == .startAtZero
+                )
                 .onTapGesture {
                     startScoreMode = .startAtZero
                 }
                 
             }
             .padding(.vertical, 20)
+            
             Spacer()
+        }
+        .onAppear {
+            avgScoreForDisplay = viewModel.getAverageScore(game: game)
         }
     }
 }

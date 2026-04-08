@@ -18,12 +18,15 @@ struct GameView: View {
     @State var newPlayerSheetShowing : Bool = false
     @State var editRoundSheetShowing : Bool = false
     @State var editGameSheetShowing : Bool = false
+    @State var markPracticeRounds : Bool = false
+    @State var deleteRoundAlert : Bool = false
     
     @State var gameName : String = ""
     @State var lowestWins : Bool = true
     @State var halving : Bool = false
     
     @State var roundIndex : Int = 0
+    @State var selectedRounds : [Int] = []
         
     @State var endGameAlertShowing : Bool = false
     
@@ -40,9 +43,7 @@ struct GameView: View {
     // error handling
     @State var isError : Bool = false
     @State var errorMessage : String = ""
-    
-    @State var editGameSheetDetent: PresentationDetent = .medium
-    
+        
     var id : UUID
     
     @Query var games : [Game]
@@ -53,6 +54,7 @@ struct GameView: View {
     var body: some View {
         
         if let game = game {
+            
             Group {
                 
                 TabView(selection: $selectedTab) {
@@ -60,7 +62,9 @@ struct GameView: View {
                     ScoresGrid(
                         game: game,
                         roundIndex: $roundIndex,
-                        editRoundSheetShowing: $editRoundSheetShowing
+                        editRoundSheetShowing: $editRoundSheetShowing,
+                        markPracticeRounds: $markPracticeRounds,
+                        selectedRounds: $selectedRounds
                     )
                     .navigationTitle("Scores")
                     .tag(Tab.scoresGridTab)
@@ -93,7 +97,6 @@ struct GameView: View {
                     }
                     .tag(Tab.chartTab)
                         
-                        
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                 .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
@@ -107,11 +110,27 @@ struct GameView: View {
             }
             
             .toolbar {
-                ToolbarItem {
-                    Button {
-                        editGameSheetShowing = true
-                    } label: {
-                        Image(systemName: "slider.horizontal.3")
+                if markPracticeRounds {
+                    ToolbarItem {
+                        Button("Cancel") {
+                            markPracticeRounds = false
+                        }
+                    }
+                    ToolbarItem {
+                        Button(role: .destructive) {
+                            deleteRoundAlert = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundStyle(Color.red)
+                        }
+                    }
+                } else {
+                    ToolbarItem {
+                        Button {
+                            editGameSheetShowing = true
+                        } label: {
+                            Image(systemName: "slider.horizontal.3")
+                        }
                     }
                 }
             }
@@ -120,6 +139,43 @@ struct GameView: View {
                 Button("OK") {}
             } message: {
                 Text(errorMessage)
+            }
+            
+            .alert("Delete Round?", isPresented: $deleteRoundAlert) {
+                Button("Delete", role: .destructive) {
+                    
+                    // remove halves/negative scores
+                    for player in game.players {
+                        player.scores = player.filteredScores
+                    }
+                    
+                    // sort index list descending
+                    let sortedIndexList = selectedRounds.sorted { $0 > $1 }
+                    print(sortedIndexList)
+                    
+                    for index in sortedIndexList { // for each index we should remove
+                        // for each player, remove his score at [index] position
+                        for player in game.players {
+                            player.scores.remove(at: index)
+                        }
+                    }
+                    
+                    // de-increment roundsPlayed by number of rounds deleted
+                    game.roundsPlayed -= sortedIndexList.count
+                    
+                    // re-calculate scores and halves etc.
+                    for player in game.players {
+                        viewModel.recalculateScores(player: player, halving: game.halving)
+                    }
+                    
+                    // save context
+                    try? context.save()
+                    
+                    // exit edit mode
+                    markPracticeRounds = false
+                }
+            } message: {
+                Text("Are you sure you want to delete the selected rounds?")
             }
             
             Spacer()
@@ -191,9 +247,10 @@ struct GameView: View {
                     gameName: $gameName,
                     lowestWins: $lowestWins,
                     halving: $halving,
-                    editGameSheetShowing: $editGameSheetShowing
+                    editGameSheetShowing: $editGameSheetShowing,
+                    markPracticeRounds: $markPracticeRounds
                 )
-                .presentationDetents([.medium, .large], selection: $editGameSheetDetent)
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
             
@@ -241,7 +298,9 @@ struct GameView: View {
     container.mainContext.insert(previewGame)
     
     return NavigationStack {
-        GameView(id: previewGame.id)
+        GameView(
+            id: previewGame.id
+        )
             .modelContainer(container)
             .environmentObject(ViewModel())
     }

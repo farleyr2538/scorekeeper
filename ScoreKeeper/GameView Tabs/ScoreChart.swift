@@ -25,6 +25,7 @@ struct ScoreChart: View {
                         Spacer()
                     }
                 } else {
+                    
                     Chart {
                         
                         ForEach(game.players) { player in

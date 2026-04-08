@@ -31,6 +31,8 @@ struct EditGameSheet: View {
     @State var showErrorAlert : Bool = false
     @State var errorMessage : String = ""
     
+    @Binding var markPracticeRounds : Bool
+    
     var body: some View {
         
         NavigationStack {
@@ -66,7 +68,7 @@ struct EditGameSheet: View {
                     }
                     .padding(.bottom, 20)
                     
-                    // players
+                    // edit players
                     VStack(spacing: 15) {
                         
                         HStack {
@@ -135,6 +137,16 @@ struct EditGameSheet: View {
                             Text("Unable to delete player. Please try again.")
                         }
                         
+                        Button {
+                            editGameSheetShowing = false
+                            markPracticeRounds = true
+                        } label: {
+                            Text("Delete Rounds")
+                                .padding(5)
+                        }
+                        .padding(.top, 10)
+                        .buttonStyle(.bordered)
+                        
                         HStack {
                             
                             Spacer()
@@ -143,7 +155,7 @@ struct EditGameSheet: View {
                                 editGameSheetShowing = false
                             } label: {
                                 Text("Cancel")
-                                    .padding(5)
+                                    .padding(10)
                             }
                             .buttonStyle(.bordered)
                             
@@ -162,7 +174,7 @@ struct EditGameSheet: View {
                                 editGameSheetShowing = false
                             } label: {
                                 Text("Save")
-                                    .padding(5)
+                                    .padding(10)
                             }
                             .buttonStyle(.borderedProminent)
                             
@@ -173,7 +185,8 @@ struct EditGameSheet: View {
                     }
                     
                     Spacer()
-                }
+                    
+                } // end of the VStack container
                 .padding(.horizontal, 30)
                 .padding(.top, 40)
                 
@@ -190,7 +203,8 @@ struct EditGameSheet: View {
         gameName: .constant("Yaniv"),
         lowestWins: .constant(false),
         halving: .constant(false),
-        editGameSheetShowing: .constant(true)
+        editGameSheetShowing: .constant(true),
+        markPracticeRounds: .constant(false)
     )
         .environmentObject(ViewModel())
 }

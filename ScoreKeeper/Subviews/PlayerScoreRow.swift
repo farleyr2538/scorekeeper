@@ -12,6 +12,8 @@ struct PlayerScoreRow: View {
     @Binding var player : Player
     @Binding var scoreBuffer : String
     @Binding var indexOfNegativeNumbers : [Int]
+    @FocusState.Binding var focusedField : Int?
+    
     var index : Int
     
     @State var isNegative : Bool = false
@@ -32,7 +34,7 @@ struct PlayerScoreRow: View {
                 .frame(width: 75)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
-                //.focused($focusedField, equals: index)
+                .focused($focusedField, equals: index)
             
             if isNegative {
                 Button("-/+") {
@@ -53,12 +55,15 @@ struct PlayerScoreRow: View {
 }
 
 #Preview {
+    @Previewable @FocusState var focusedField: Int?
+    
     PlayerScoreRow(
         player: .constant(
             Player(name: "Rob", scores: [0, 5, 10], runningScores: [0, 5, 15])
             ),
         scoreBuffer: .constant(""),
         indexOfNegativeNumbers: .constant([0, 1, 2]),
+        focusedField: $focusedField,
         index: 5
     )
 }

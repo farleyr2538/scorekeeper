@@ -48,8 +48,8 @@ struct PreviousPlayers: View {
                                     print("existingPlayers array: \(existingPlayers)")
                                     
                                     if existingPlayers.contains(playerName) {
-                                        isError = true
                                         errorMessage = "Player already exists"
+                                        isError = true
                                     } else {
                                         if useContext == .preGame { // create a new player with the corresponding name, and add it to the game
                                             let newPlayer = Player(
@@ -59,6 +59,7 @@ struct PreviousPlayers: View {
                                             )
                                             
                                             game.players.append(newPlayer)
+                                            name = ""
                                             
                                         } else if useContext == .midGame { // just insert name into textfield so user can choose score calculation method
                                             
