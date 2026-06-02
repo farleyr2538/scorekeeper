@@ -8,12 +8,8 @@
 import Foundation
 import SwiftData
 import Combine
+import SwiftUI
 
-
-enum gameError : Error {
-    case tooManyPlayers
-    case noPlayers
-}
 
 class ViewModel : ObservableObject {
     
@@ -56,11 +52,12 @@ class ViewModel : ObservableObject {
             if !trimmedName.isEmpty {
                 allPlayers.append(trimmedName)
             }
-        }
+    }
     
+    // create an empty round with the correct number of players
     func newRound(game: Game) -> [String] {
-        let length = game.players.count
-        let newArray = Array(repeating: "", count: length)
+        let numberOfPlayers = game.players.count
+        let newArray = Array(repeating: "", count: numberOfPlayers)
         return newArray
     }
     
@@ -71,6 +68,47 @@ class ViewModel : ObservableObject {
         if let mostRecentTotal = player.runningScores.last {
             let newTotal = mostRecentTotal / 2.0
             player.runningScores[lastScoreIndex] = newTotal
+        }
+    }
+    
+    
+    
+    // given a round's scores as a list of strings, validate, then add to a game
+    func addRound(scores : [String], game: Game, indexOfNegativeNumbers: [Int]) throws {
+        
+        print("addRound function started...")
+        
+        if !checkRoundInput(scoreBuffers: scores) {
+            // at least one value is either nil or cannot be converted to Double
+            print("reason for failure: at least one value is either nil or cannot be converted to Double")
+            throw addRoundError.invalidScore
+        } else {
+            
+            print("adding scores to players' arrays")
+            // add scores to each player's scores array
+            game.players.indices.forEach { index in
+                // this relies on the order of the players matching the order of the scores in scores, so that player[n]'s score is scores[n]
+                
+                // a copy of this player's score this round
+                if let nominalScore = Double(scores[index]) {
+                    
+                    var realScore : Double
+                    
+                    if indexOfNegativeNumbers.contains(index) {
+                        realScore = 0 - nominalScore
+                    } else {
+                        realScore = nominalScore
+                    }
+                    
+                    // add score to scores and runningScores, halving if necessary
+                    addScore(
+                        player: game.players[index],
+                        score: realScore,
+                        halving: game.halving
+                    )
+                    
+                }
+            }
         }
     }
     
@@ -150,7 +188,7 @@ class ViewModel : ObservableObject {
         guard !game.players.isEmpty else {
             throw gameError.noPlayers
         }
-        guard !(game.players.count > 7) else {
+        guard !(game.players.count > 8) else {
             throw gameError.tooManyPlayers
         }
     }
@@ -245,11 +283,10 @@ class ViewModel : ObservableObject {
             print("getScores() error: unable to access game.calculatedRoundsPlayed")
             return[""]
         }
-        
-        
     }
     
-    // validate round input
+    // in-game
+    // checks for nil values or values not convertible to doubles
     func checkRoundInput(scoreBuffers: [String]) -> Bool {
         var validInput : Bool = true
         scoreBuffers.forEach { scoreBuffer in
@@ -260,6 +297,7 @@ class ViewModel : ObservableObject {
         return validInput
     }
     
+    // helper
     func generateGameTitle(game: Game) -> String {
         
         let players = game.players
@@ -280,6 +318,7 @@ class ViewModel : ObservableObject {
         return inputString
     }
     
+    // helper
     func populateGameNameArray(games: [Game]) {
         
         print("populating game names array...")
@@ -298,6 +337,94 @@ class ViewModel : ObservableObject {
         self.gameNames = Array(uniqueNames)
         
     }
+
+    // Game Setup
+    func prepareGameForCreation(game: Game, gameName: String) throws {
         
+        // verify game is valid
+        do {
+            try verifyGame(game: game)
+        } catch let error {
+            throw error
+        } 
+        
+        // add player names to player history
+        game.players.forEach { player in
+            addPlayerName(player.name)
+        }
+        
+        // add game name to gameNames
+        let strippedGameName = gameName.trimmingCharacters(in: .whitespaces)
+        if strippedGameName != "" && !gameNames.contains(where: { $0 == strippedGameName }) {
+            gameNames.append(strippedGameName)
+        }
+        
+        // set game name
+        game.name = gameName
+
+    }
+    
+    // In-Game
+    func addPlayerToGame(name: String, game: Game, useContext: Context, startScoreMode: StartScoreMode) throws {
+                
+        // if there is no name, reject
+        if name.isEmpty {
+            throw addPlayerError.noName
+        }
+        
+        // if there is already a player with that name, reject - this is not working when it should
+        let existingPlayersNames = game.players.map(\.name)
+        if existingPlayersNames.contains(name) {
+            throw addPlayerError.existingName
+        }
+        
+        if game.players.count + 1 > maxPlayers {
+            throw addPlayerError.tooManyPlayers
+        }
+        
+        let newPlayer = Player(
+            name: name,
+            scores: [],
+            runningScores: []
+        )
+        
+        if useContext == .midGame {
+            
+            let numberOfRounds = game.roundsPlayed
+            print("numberOfRounds: " + String(numberOfRounds))
+            
+            // add zeros for all rounds played so far (except the current one)
+            if numberOfRounds > 0 {
+                for _ in 0 ..< (numberOfRounds - 1) {
+                    addScore(
+                        player: newPlayer,
+                        score: 0,
+                        halving: false
+                    )
+                }
+            }
+            
+            let firstScore : Double
+            
+            if startScoreMode == .averageScore {
+                firstScore = getAverageScore(game: game)
+            } else {
+                firstScore = 0
+            }
+            
+            addScore(
+                player: newPlayer,
+                score: firstScore,
+                halving: false
+            )
+            
+            
+        }
+        
+        // add player to game
+        game.players.append(newPlayer)
+        
+    }
+    
 }
 

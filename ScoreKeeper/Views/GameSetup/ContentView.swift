@@ -19,6 +19,7 @@ struct ContentView: View {
     var yOffset : CGFloat = 70.0
     
     var body: some View {
+        
         NavigationStack {
             
             Spacer()

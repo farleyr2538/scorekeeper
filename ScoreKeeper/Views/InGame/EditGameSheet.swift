@@ -64,6 +64,12 @@ struct EditGameSheet: View {
                         Toggle("Lowest score wins", isOn: $lowestWins)
                         
                         Toggle("Halving", isOn: $halving)
+                            .onChange(of: halving) { oldValue, newValue in
+                                for player in game.players {
+                                    viewModel.recalculateScores(player: player, halving: newValue)
+                                }
+                                
+                            }
                         
                     }
                     .padding(.bottom, 20)

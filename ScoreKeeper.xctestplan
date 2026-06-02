@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "D718CEB7-83B8-4251-B480-76C622F72A13",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:ScoreKeeper.xcodeproj",
+      "identifier" : "D4F8924E2E08B060006A42E2",
+      "name" : "ScoreKeeper"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:ScoreKeeper.xcodeproj",
+        "identifier" : "D458360E2E40BA360006F8E0",
+        "name" : "ScoreKeeperUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:ScoreKeeper.xcodeproj",
+        "identifier" : "D4A6692A2FCB101D00B90395",
+        "name" : "ScoreKeeperTests"
+      }
+    }
+  ],
+  "version" : 1
+}

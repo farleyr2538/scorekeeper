@@ -42,6 +42,9 @@ struct AddPlayerSheet: View {
     
     var allPlayers : [(String, Int)] {
         
+        let lengthOfPlayerNames = viewModel.allPlayers.count
+        print("playerNames count: \(lengthOfPlayerNames)")
+        
         // transform playerNames into either a dictionary or an array of tuples
         let playersCountDict = viewModel.allPlayers.reduce(into: [:]) { dict, value in
             dict[value, default: 0] += 1
@@ -90,74 +93,41 @@ struct AddPlayerSheet: View {
                         
                         Button("Add") {
                             
-                            // if there is no name, reject
-                            if name.isEmpty {
-                                errorMessage = "Please enter a name"
-                                isError = true
-                            }
-                            
-                            // if there is already a player with that name, reject - this is not working when it should
-                            let existingPlayersNames = game.players.map(\.name)
-                            
-                            existingPlayersNames.forEach { playerName in
-                                if playerName == name {
-                                    errorMessage = "Player already exists"
+                            do {
+                                try viewModel.addPlayerToGame(
+                                    name: name,
+                                    game: game,
+                                    useContext: useContext,
+                                    startScoreMode: startScoreMode
+                                )
+                            } catch let error {
+                                // handle errors
+                                switch error {
+                                    case addPlayerError.noName:
+                                    errorMessage = "Please enter a name"
+                                    isError = true
+                                case addPlayerError.existingName:
+                                    errorMessage = "Name must be different from existing players"
+                                    isError = true
+                                case addPlayerError.tooManyPlayers:
+                                    errorMessage = "Cannot add more than \(maxPlayers) players"
+                                    isError = true
+                                default:
+                                    errorMessage = "Unknown error"
                                     isError = true
                                 }
-                            }
-                            
-                            // only proceed if there is not an error
-                            if !isError {
-                                
-                                let newPlayer = Player(
-                                    name: name,
-                                    scores: [],
-                                    runningScores: []
-                                )
-                                
-                                if useContext == .midGame {
-                                    
-                                    let numberOfRounds = game.roundsPlayed
-                                    print("numberOfRounds: " + String(numberOfRounds))
-                                    
-                                    // add zeros for all rounds played so far (except the current one)
-                                    if numberOfRounds > 0 {
-                                        for _ in 0 ..< (numberOfRounds - 1) {
-                                            viewModel.addScore(
-                                                player: newPlayer,
-                                                score: 0,
-                                                halving: false
-                                            )
-                                        }
-                                    }
-                                    
-                                    let firstScore : Double
-                                    
-                                    if startScoreMode == .averageScore {
-                                        firstScore = viewModel.getAverageScore(game: game)
-                                    } else {
-                                        firstScore = 0
-                                    }
-                                    
-                                    viewModel.addScore(
-                                        player: newPlayer,
-                                        score: firstScore,
-                                        halving: false
-                                    )
-                                    
-                                    newPlayerSheetShowing = false
-                                }
-                                
-                                // add player to game
-                                game.players.append(newPlayer)
-                                
-                                // save context
-                                try? context.save()
                             }
                             
                             // reset name variable
                             name = ""
                             
+                            // save context
+                            try? context.save()
+                            print("game saved after player added to game")
+                            
+                            if useContext == .midGame {
+                                newPlayerSheetShowing = false
+                            }
                         }
                         
                     }

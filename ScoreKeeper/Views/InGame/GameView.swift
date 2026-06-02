@@ -14,12 +14,17 @@ struct GameView: View {
     
     @EnvironmentObject var viewModel : ViewModel
 
+    // sheet control
     @State var newRoundSheetShowing : Bool = false
     @State var newPlayerSheetShowing : Bool = false
     @State var editRoundSheetShowing : Bool = false
     @State var editGameSheetShowing : Bool = false
-    @State var markPracticeRounds : Bool = false
+    
+    // alert control
     @State var deleteRoundAlert : Bool = false
+    @State var endGameAlertShowing : Bool = false
+    
+    @State var markPracticeRounds : Bool = false
     
     @State var gameName : String = ""
     @State var lowestWins : Bool = true
@@ -28,7 +33,7 @@ struct GameView: View {
     @State var roundIndex : Int = 0
     @State var selectedRounds : [Int] = []
         
-    @State var endGameAlertShowing : Bool = false
+    
     
     enum Tab {
         case scoresGridTab
