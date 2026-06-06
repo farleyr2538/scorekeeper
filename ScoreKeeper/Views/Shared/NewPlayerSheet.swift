@@ -9,17 +9,9 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-enum StartScoreMode {
-    case startAtZero
-    case averageScore
-}
 
-enum Context {
-    case preGame
-    case midGame
-}
 
-struct AddPlayerSheet: View {
+struct NewPlayerSheet: View {
     
     @EnvironmentObject var viewModel : ViewModel
     @Environment(\.modelContext) var context
@@ -67,12 +59,12 @@ struct AddPlayerSheet: View {
         
         NavigationStack {
         
-            VStack {
+            ScrollView {
                 
                 // custom players VStack
                 VStack {
                     
-                    HStack {
+                    HStack { // title
                         Text("Add Players")
                             .font(.title)
                             .bold()
@@ -135,10 +127,11 @@ struct AddPlayerSheet: View {
                     
                     // option to select new player's score
                     if useContext == .midGame {
-                        NewPlayerScoreChooser(game: game, startScoreMode: $startScoreMode)
+                        NewPlayerScoreChooser(
+                            game: game,
+                            startScoreMode: $startScoreMode
+                        )
                     }
-                    
-                    
                 }
                 .buttonStyle(.bordered)
                 .padding(.horizontal)
@@ -156,33 +149,11 @@ struct AddPlayerSheet: View {
                 // when pre-game, display players added while sheet is showing
                 Group {
                     if useContext == .preGame {
-                        if !game.players.isEmpty {
-                            
-                            VStack {
-                                ForEach(game.players) { player in
-                                    HStack {
-                                        Text(player.name)
-                                        
-                                        Button {
-                                            game.players.removeAll(where: { $0.id == player.id })
-                                        } label: {
-                                            Image(systemName: "xmark.circle")
-                                                .foregroundStyle(.red)
-                                        }
-                                    }
-                                }
-                                .padding(.bottom, 1)
-                            }
-                            .padding(.vertical, 20)
-                            
-                        } else {
-                            HStack {
-                                Text("No players added to game")
-                                    .foregroundStyle(.gray)
-                                    .padding(.top, 20)
-                                    .padding(.bottom, 20)
-                            }
-                        }
+                        PlayersView(
+                            game: game,
+                            newPlayerSheetShowing: $newPlayerSheetShowing,
+                            preference: .justPlayerTags
+                        )
                     }
                 }
                 .padding(.horizontal)
@@ -219,13 +190,13 @@ struct AddPlayerSheet: View {
 
 #Preview {
         
-    AddPlayerSheet(
+    NewPlayerSheet(
         game: Game(
             players: [],
             halving: true
         ),
         newPlayerSheetShowing: .constant(true),
-        useContext: .midGame
+        useContext: .preGame
     )
     .environmentObject(ViewModel())
 }

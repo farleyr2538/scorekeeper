@@ -19,8 +19,6 @@ final class ScoreKeeperUITests: XCTestCase {
         app/*@START_MENU_TOKEN@*/.buttons["Create Game"]/*[[".otherElements.buttons[\"Create Game\"]",".buttons[\"Create Game\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
         app/*@START_MENU_TOKEN@*/.buttons["Add players"]/*[[".otherElements.buttons[\"Add players\"]",".buttons[\"Add players\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
         
-        
-        
         let players = ["Rob", "Kate", "Vnesh", "Nikhil"]
         for player in players {
             let nameField = app.textFields["Name"]
@@ -53,13 +51,11 @@ final class ScoreKeeperUITests: XCTestCase {
                 element.typeText(String(score))
             }
             
-            app.buttons["Add"].tap()
+            app.buttons["Add round"].tap()
         }
         
         app/*@START_MENU_TOKEN@*/.buttons["Finish"]/*[[".otherElements.buttons[\"Finish\"]",".buttons[\"Finish\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
-        
-        
-
+        app.buttons["Home"].firstMatch.tap()
     }
     
     @MainActor
@@ -108,13 +104,16 @@ final class ScoreKeeperUITests: XCTestCase {
                 textFields[index].typeText(score)
             }
             
-            let addRoundButton = app.buttons["Add"].firstMatch
+            let addRoundButton = app.buttons["Add round"].firstMatch
             addRoundButton.tap()
             
         }
         
         app.swipeLeft()
         app.swipeLeft()
+        
+        app.buttons["Finish"].firstMatch.tap()
+        app.buttons["Home"].firstMatch.tap()
         
     }
     
@@ -149,7 +148,7 @@ final class ScoreKeeperUITests: XCTestCase {
             field.typeText("0")
         }
         
-        let addRoundButton = app.buttons["Add"].firstMatch
+        let addRoundButton = app.buttons["Add round"].firstMatch
         addRoundButton.tap()
                 
         app.cells/*@START_MENU_TOKEN@*/.firstMatch/*[[".containing(.other, identifier: nil).firstMatch",".firstMatch"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.swipeLeft()
@@ -158,10 +157,11 @@ final class ScoreKeeperUITests: XCTestCase {
         app.buttons["minus.magnifyingglass"].firstMatch.tap()
         
         app.buttons["Finish"].firstMatch.tap()
+        app.buttons["Home"].firstMatch.tap()
     }
 
     @MainActor
-    func testSevenPlayerSingleRound() throws {
+    func testSevenPlayerAddRounds() throws {
 
         let app = XCUIApplication()
         app.activate()
@@ -191,15 +191,12 @@ final class ScoreKeeperUITests: XCTestCase {
                 textFields[index].tap()
                 textFields[index].typeText(score)
             }
-            app.buttons["Add"].firstMatch.tap()
+            app.buttons["Add round"].firstMatch.tap()
         }
+        
+        app.buttons["Finish"].firstMatch.tap()
+        app.buttons["Home"].firstMatch.tap()
     }
 
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
-    }
+    
 }

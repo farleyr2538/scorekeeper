@@ -22,14 +22,18 @@ struct PreviousPlayers: View {
     @Binding var name : String
     
     var filteredPlayers : [(String, Int)] {
-        return allPlayers.filter { $0.0.lowercased().starts(with: name.lowercased()) }
+        return allPlayers.filter { playerTuple in
+            playerTuple.0.lowercased().starts(with: name.lowercased())
+            &&
+            !game.players.contains(where: { $0.name == playerTuple.0 })
+        }
     }
  
     var body: some View {
         
-        // previous players VStack
         if !allPlayers.isEmpty {
             
+            // previous players VStack
             VStack(alignment: .leading) {
                 
                 Text("Previous players")
@@ -39,36 +43,43 @@ struct PreviousPlayers: View {
                 ScrollView(.horizontal) {
                     
                     HStack {
-                        // for each player, show a selectable name that the user can press to add to the game
-                        ForEach(filteredPlayers, id: \.0) { playerName, count in
-                            NameTag(name: playerName)
-                                .onTapGesture {
-                                    
-                                    let existingPlayers = game.players.map(\.name)
-                                    print("existingPlayers array: \(existingPlayers)")
-                                    
-                                    if existingPlayers.contains(playerName) {
-                                        errorMessage = "Player already exists"
-                                        isError = true
-                                    } else {
-                                        if useContext == .preGame { // create a new player with the corresponding name, and add it to the game
-                                            let newPlayer = Player(
-                                                name: playerName,
-                                                scores: [],
-                                                runningScores: []
-                                            )
-                                            
-                                            game.players.append(newPlayer)
-                                            name = ""
-                                            
-                                        } else if useContext == .midGame { // just insert name into textfield so user can choose score calculation method
-                                            
-                                            name = playerName
-                                            // newPlayerSheetShowing = false
+                        
+                        if filteredPlayers.isEmpty {
+                            Text("No previous players found")
+                                .foregroundStyle(Color.gray)
+                                .padding()
+                        } else {
+                            // for each player, show a selectable name that the user can press to add to the game
+                            ForEach(filteredPlayers, id: \.0) { playerName, count in
+                                NameTag(name: playerName)
+                                    .onTapGesture {
+                                        
+                                        let existingPlayers = game.players.map(\.name)
+                                        print("existingPlayers array: \(existingPlayers)")
+                                        
+                                        if existingPlayers.contains(playerName) {
+                                            errorMessage = "Player already exists"
+                                            isError = true
+                                        } else {
+                                            if useContext == .preGame { // create a new player with the corresponding name, and add it to the game
+                                                let newPlayer = Player(
+                                                    name: playerName,
+                                                    scores: [],
+                                                    runningScores: []
+                                                )
+                                                
+                                                game.players.append(newPlayer)
+                                                name = ""
+                                                
+                                            } else if useContext == .midGame { // just insert name into textfield so user can choose score calculation method
+                                                
+                                                name = playerName
+                                                // newPlayerSheetShowing = false
+                                            }
                                         }
                                     }
-                                }
-                            
+                                
+                            }
                         }
                     }
                     .padding(.horizontal)

@@ -30,7 +30,7 @@ struct CreateGameView: View {
         
         VStack {
             
-            ScrollViewReader { proxy in
+            ScrollViewReader { scrollProxy in
                 
                 ScrollView {
                     
@@ -39,7 +39,11 @@ struct CreateGameView: View {
                         VStack(spacing: 40) {
                             
                             // players
-                            PlayersView(game: game, newPlayerSheetShowing: $newPlayerSheetShowing)
+                            PlayersView(
+                                game: game,
+                                newPlayerSheetShowing: $newPlayerSheetShowing,
+                                preference: .all
+                            )
                             
                             // game settings
                             GameSettings(game: game)
@@ -47,19 +51,20 @@ struct CreateGameView: View {
                             // game name
                             GameNameView(
                                 gameName: $gameName,
-                                proxy: proxy
+                                proxy: scrollProxy
                             )
                             
                         }
-                        .frame(width: 250)
-                        .padding(30)
+                        .frame(maxWidth: 300)
+                        .padding(25)
                         .background(Color.brown.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .padding(.horizontal, 40)
                         
                         Spacer()
                                                 
                         .sheet(isPresented: $newPlayerSheetShowing) {
-                            AddPlayerSheet(
+                            NewPlayerSheet(
                                 game: game,
                                 newPlayerSheetShowing: $newPlayerSheetShowing
                             )
@@ -78,7 +83,6 @@ struct CreateGameView: View {
             
             Button {
                 
-                // abstract this out to ViewModel
                 do {
                     try viewModel.prepareGameForCreation(game: game, gameName: gameName)
                     

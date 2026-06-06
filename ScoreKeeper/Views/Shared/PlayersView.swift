@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import WrappingHStack
 
 struct PlayersView: View {
     
@@ -14,19 +15,29 @@ struct PlayersView: View {
     
     @Binding var newPlayerSheetShowing : Bool
     
+    enum PlayersViewPreference {
+        case all
+        case justPlayerTags
+    }
+    var preference : PlayersViewPreference
+    
     var body: some View {
     
         VStack {
-            Text("Players")
-                .font(.title3)
-                .bold()
-                .padding(.bottom, 20)
+            
+            if preference == .all {
+                Text("Players")
+                    .font(.title3)
+                    .bold()
+                    .padding(.bottom, 20)
+            }
             
             if !game.players.isEmpty {
                 
-                ForEach(game.players) { player in
-                    HStack {
+                WrappingHStack(game.players, id: \.self, alignment: .leading) { player in
+                    HStack(spacing: 4) {
                         Text(player.name)
+                            .font(.system(size: 14))
                         
                         Button {
                             game.players.removeAll(where: { $0.id == player.id })
@@ -34,10 +45,16 @@ struct PlayersView: View {
                             Image(systemName: "xmark.circle")
                                 .foregroundStyle(.red)
                         }
+                        
                     }
-                    .padding(.bottom, 1)
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 8)
+                    .fixedSize()
+                    .background(preference == .all ? Color(.white) : Color.gray.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .padding(.vertical, 5)
                 }
+                
             } else {
                 HStack {
                     Text("No players added to game")
@@ -46,22 +63,28 @@ struct PlayersView: View {
                 }
             }
             
-            Button("Add players") {
-                newPlayerSheetShowing = true
+            if preference == .all {
+                Button("Add players") {
+                    newPlayerSheetShowing = true
+                }
+                .padding(.top, 15)
             }
-            .padding(.top, 15)
-        }        
+        }
     }
 }
 
 
 #Preview {
-    
-    PlayersView(
-        game: Game(
-            players: [],
-            halving: false,
-        ),
-        newPlayerSheetShowing: .constant(false)
-    )
+    VStack {
+        PlayersView(
+            game: Game(
+                players: Player.sampleEightPlayers,
+                halving: false,
+            ),
+            newPlayerSheetShowing: .constant(false),
+            preference: .all
+        )
+    }
+    .frame(width: 250)
+    .background(Color.gray.opacity(0.1))
 }

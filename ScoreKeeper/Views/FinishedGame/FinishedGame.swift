@@ -14,13 +14,10 @@ struct FinishedGame: View {
     
     var topPadding : CGFloat = 15
     
-    @State var selectedTab : Tab = Tab.stats
+    @State var selectedTab : FinishedGameTab = FinishedGameTab.stats
     @State var selectedRounds : [Int] = []
     
-    enum Tab {
-        case stats
-        case scoreboard
-    }
+    
     
     var body: some View {
         
@@ -51,7 +48,7 @@ struct FinishedGame: View {
                     .navigationTitle("Game Stats")
                     .navigationBarTitleDisplayMode(.inline)
                 }
-                .tag(Tab.stats)
+                .tag(FinishedGameTab.stats)
                 
                 ScoresGrid(
                     game: game,
@@ -61,7 +58,7 @@ struct FinishedGame: View {
                     selectedRounds: $selectedRounds
                 )
                 .navigationTitle("Scoreboard")
-                .tag(Tab.scoreboard)
+                .tag(FinishedGameTab.scoreboard)
                 
                 
             }

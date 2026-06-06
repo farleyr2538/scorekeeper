@@ -32,16 +32,8 @@ struct GameView: View {
     
     @State var roundIndex : Int = 0
     @State var selectedRounds : [Int] = []
-        
     
-    
-    enum Tab {
-        case scoresGridTab
-        case leaderboardTab
-        case chartTab
-    }
-    
-    @State var selectedTab : Tab = .scoresGridTab
+    @State var selectedTab : GameTab = .scoresGridTab
     
     @State var isZoomed : Bool = false
     
@@ -72,7 +64,7 @@ struct GameView: View {
                         selectedRounds: $selectedRounds
                     )
                     .navigationTitle("Scores")
-                    .tag(Tab.scoresGridTab)
+                    .tag(GameTab.scoresGridTab)
                         
                     ScrollView {
                         Leaderboard(game: game)
@@ -81,7 +73,7 @@ struct GameView: View {
                     }
                     .padding(.horizontal)
                     .navigationTitle("Leaderboard")
-                    .tag(Tab.leaderboardTab)
+                    .tag(GameTab.leaderboardTab)
                     .font(isZoomed ? .system(size: 40) : .body)
                     .animation(.easeIn, value: isZoomed)
                     .toolbar {
@@ -100,7 +92,7 @@ struct GameView: View {
                             .padding()
                         Spacer()
                     }
-                    .tag(Tab.chartTab)
+                    .tag(GameTab.chartTab)
                         
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
@@ -237,7 +229,7 @@ struct GameView: View {
             
             // new player sheet
             .sheet(isPresented: $newPlayerSheetShowing) {
-                AddPlayerSheet(
+                NewPlayerSheet(
                     game: game,
                     newPlayerSheetShowing: $newPlayerSheetShowing,
                     useContext: .midGame
