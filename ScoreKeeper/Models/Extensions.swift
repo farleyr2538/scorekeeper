@@ -50,6 +50,7 @@ extension Game {
                         runningScores: [0.0, 3.0, 3.0, 10.0, 10.0, 10.0, 10.0, 36.0, 45.0, 57.0, 57.0, 57.0, 68.0, 68.0, 75.0, 81.0, 100.0]
                     )
                 ],
+                name: "Bidding whist",
                 halving: true,
                 roundsPlayed: 17
             ),

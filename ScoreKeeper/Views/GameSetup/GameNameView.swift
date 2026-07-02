@@ -21,7 +21,7 @@ struct GameNameView: View {
     
     var filteredOptions : [String] {
          if gameName.isEmpty {
-             return []
+             return pickerOptions
         } else {
             return pickerOptions.filter { $0.localizedCaseInsensitiveContains(gameName) }
         }
@@ -76,12 +76,20 @@ struct GameNameView: View {
                         
                         Text(option)
                             .font(.system(size: 16.0))
+                        
+                            // internal
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
+                        
+                            // background
                             .containerShape(.capsule)
                             .background(Color.yellow)
                             .cornerRadius(15)
                             .foregroundStyle(Color.black)
+                        
+                            // external
+                            .padding(.bottom, 2)
+                        
                             .onTapGesture {
                                 
                                 gameName = option
@@ -99,7 +107,7 @@ struct GameNameView: View {
                 }
             }
             .padding(.bottom, isExpanded ? 5 : 0)
-            .background(.white.opacity(0.5))
+            .background(.white.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 15.0))
             
         }

@@ -22,9 +22,7 @@ struct FullWidthButton: View {
             }
             .frame(maxWidth: 350, maxHeight: 75)
             .frame(minHeight: 75)
-            
         }
-        
     }
 }
 

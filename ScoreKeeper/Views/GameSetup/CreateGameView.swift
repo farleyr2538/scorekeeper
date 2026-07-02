@@ -13,7 +13,7 @@ struct CreateGameView: View {
     @EnvironmentObject private var viewModel : ViewModel
     @Environment(\.modelContext) var context
             
-    @Bindable var game : Game = Game(players: [], halving: true, lowestWins: true)
+    @Bindable var game : Game = Game(players: [], halving: false, lowestWins: true)
     
     @State var newPlayerSheetShowing : Bool = false
     
@@ -115,7 +115,6 @@ struct CreateGameView: View {
                 FullWidthButton(text: "Start")
                     .padding(.horizontal)
             }
-            .padding(.vertical)
             .scaleEffect(startButtonPressed ? 0.9 : 1.0)
             .animation(.spring(), value: startButtonPressed)
             .simultaneousGesture(

@@ -50,7 +50,7 @@ struct PlayersView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 8)
                     .fixedSize()
-                    .background(preference == .all ? Color(.white) : Color.gray.opacity(0.1))
+                    .background(preference == .all ? Color.darkAndLight : Color.gray.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .padding(.vertical, 5)
                 }
