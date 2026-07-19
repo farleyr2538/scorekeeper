@@ -20,9 +20,15 @@ enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
         ]
     }
 
-    static let migrateV2ToV3 = MigrationStage.lightweight(
+    // A no-op custom stage, not lightweight: when every stage is lightweight,
+    // Core Data skips the intermediate versions and attempts a direct V2->V5
+    // migration, which fails to infer a mapping. A custom stage forces the
+    // migration to actually pass through V3.
+    static let migrateV2ToV3 = MigrationStage.custom(
         fromVersion: SchemaV2.self,
-        toVersion: SchemaV3.self
+        toVersion: SchemaV3.self,
+        willMigrate: nil,
+        didMigrate: nil
     )
 
     // V4's only difference from V5 was scores/runningScores being [Int] instead
