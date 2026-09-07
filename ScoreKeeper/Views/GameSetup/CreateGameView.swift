@@ -13,7 +13,11 @@ struct CreateGameView: View {
     @EnvironmentObject private var viewModel : ViewModel
     @Environment(\.modelContext) var context
             
-    @Bindable var game : Game = Game(players: [], halving: false, lowestWins: true)
+    @Bindable var game : Game = Game(
+        players: [],
+        halving: true,
+        lowestWins: true
+    )
     
     @State var newPlayerSheetShowing : Bool = false
     

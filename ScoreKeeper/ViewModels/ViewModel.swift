@@ -198,7 +198,7 @@ class ViewModel : ObservableObject {
         // we been given an updated player, with updated scores, but potentially having incorrect halves (ie. they shouldn't have halved) or missed halves (ie. they should have halved, but haven't).
         // therefore, we need to run through the scores again. if, at any point, the runningScore / 50 == 0 (and neither the round's score or the runningScore is 0) then we need to add a halve at this point.
         
-        // assuming that one item in the 'scores' array has been edited, we need to:
+        // assuming that one item in the player's 'scores' array has been edited, we need to:
             // 1) remove any subtractions/negatives (in case - in light of the new scores - this person should never have halved)
             // 2) go through scores again, halving (ie. adding negatives) where necessary
             // 3) go through runningScores again
@@ -207,14 +207,16 @@ class ViewModel : ObservableObject {
         let scoresWithoutNegatives = player.scores.filter { $0 >= 0 }
         
         if halving {
+            
             // add negatives back in, in the right places
-            var scoresRunningTotal: Double = 0
-            var newScoresWithHalving: [Double] = []
+            
+            var scoresRunningTotal: Double = 0 // cumulative running total
+            var newScoresWithHalving: [Double] = [] // individual scores
             
             for score in scoresWithoutNegatives {
                 
-                newScoresWithHalving.append(score)
-                scoresRunningTotal += score
+                newScoresWithHalving.append(score) // add new score to list of scores
+                scoresRunningTotal += score // update running total
                 
                 // check for need to halve
                 if (
@@ -224,17 +226,17 @@ class ViewModel : ObservableObject {
                 ) {
                     let reductionValue = 0 - (scoresRunningTotal / 2.0)
                     newScoresWithHalving.append(reductionValue)
+                    scoresRunningTotal += reductionValue
                 }
-                
             }
-            
             player.scores = newScoresWithHalving
-            
+        } else {
+            player.scores = scoresWithoutNegatives
         }
         
         // re-calculate runningScores
-        player.runningScores.removeAll()
         
+        player.runningScores.removeAll()
         var runningTotal: Double = 0
         
         scoresWithoutNegatives.forEach { score in

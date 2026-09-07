@@ -62,3 +62,41 @@ struct SevenPlayersTests {
         }
     }
 }
+
+@Suite("Recalculating scores after an edit")
+struct RecalculateScoresTests {
+
+    let viewModel = ViewModel()
+
+    // Scores 30, 20, 25, 25 with halving on: the running total hits 50 after
+    // each of the last three rounds, so a halve should be inserted every time.
+    @Test func recalculatesRepeatedHalvesWithHalvingOn() async throws {
+        let player = SchemaV5.Player(
+            name: "Rob",
+            scores: [30, 20, 25, 25],
+            runningScores: []
+        )
+
+        viewModel.recalculateScores(player: player, halving: true)
+
+        // scores array has a negative halve entry inserted after each 50
+        #expect(player.scores == [30, 20, -25, 25, -25, 25, -25])
+        // running totals carry forward the halved value
+        #expect(player.runningScores == [30, 25, 25, 25])
+    }
+
+    // With halving off, any previously-inserted negative halve entries should be
+    // stripped out of both scores and runningScores.
+    @Test func stripsOldHalvesWhenHalvingOff() async throws {
+        let player = SchemaV5.Player(
+            name: "Rob",
+            scores: [30, 20, -25, 25, -25, 25, -25],
+            runningScores: []
+        )
+
+        viewModel.recalculateScores(player: player, halving: false)
+
+        #expect(player.scores == [30, 20, 25, 25])
+        #expect(player.runningScores == [30, 50, 75, 100])
+    }
+}
