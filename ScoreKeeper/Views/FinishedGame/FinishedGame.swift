@@ -29,7 +29,7 @@ struct FinishedGame: View {
                         Text("Leaderboard")
                             .font(.title2)
                             .padding(.top, topPadding)
-                        Leaderboard(game: game)
+                        Leaderboard(game: game, inProgress: false)
                         
                         // the icon sits right alongside the title, on its
                         // baseline, so the two read as one unit

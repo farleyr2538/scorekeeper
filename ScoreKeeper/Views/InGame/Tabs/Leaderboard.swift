@@ -12,6 +12,22 @@ struct Leaderboard: View {
     @EnvironmentObject var viewModel : ViewModel
     @Bindable var game : Game
     
+    // whether the leaderboard is showing large text (toggled from the toolbar in GameView)
+    var isZoomed : Bool = false
+    
+    // false once the game is over, when the score needed to half no longer matters
+    var inProgress : Bool = true
+    
+    @AppStorage(SettingsKey.showScoreNeededToHalve) private var showScoreNeededToHalve : Bool = false
+    
+    // the score a player needs to land on the next multiple of 50 (and so halve),
+    // or nil if it shouldn't be shown (setting off, halving off, or total of 25 or under)
+    func scoreNeededToHalve(_ player: Player) -> Double? {
+        guard inProgress, showScoreNeededToHalve, game.halving, player.total > 25 else { return nil }
+        let nextMultiple = ((player.total / 50).rounded(.down) + 1) * 50
+        return nextMultiple - player.total
+    }
+    
     func formatScore(_ score: Double) -> String {
         if score.truncatingRemainder(dividingBy: 1) == 0 {
             return String(Int(score))
@@ -53,7 +69,24 @@ struct Leaderboard: View {
                                 .foregroundStyle(.yellow)
                         }
                         Spacer()
-                        Text(formatScore(player.total))
+                        if let needed = scoreNeededToHalve(player) {
+                            if isZoomed {
+                                // small and raised like an exponent, but to the top left of the
+                                // score so the score itself stays against the right edge.
+                                // the trailing space is at the small size, so the gap stays tight
+                                let superscript = Text(formatScore(needed) + " ")
+                                    .font(.system(size: 18))
+                                    .baselineOffset(18)
+                                    .foregroundStyle(.gray)
+                                Text("\(superscript)\(formatScore(player.total))")
+                            } else {
+                                Text("\(formatScore(needed)) to half")
+                                    .foregroundStyle(.gray)
+                                Text(formatScore(player.total))
+                            }
+                        } else {
+                            Text(formatScore(player.total))
+                        }
                     }
                     
                     // .padding(.bottom, index == length - 1 ? 10 : 0)

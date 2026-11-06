@@ -8,3 +8,8 @@
 import Foundation
 
 let maxPlayers = 8
+
+// UserDefaults keys for app-wide settings
+enum SettingsKey {
+    static let showScoreNeededToHalve = "showScoreNeededToHalve"
+}

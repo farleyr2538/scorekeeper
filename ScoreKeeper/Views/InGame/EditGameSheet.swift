@@ -33,6 +33,24 @@ struct EditGameSheet: View {
     
     @Binding var markPracticeRounds : Bool
     
+    @AppStorage(SettingsKey.showScoreNeededToHalve) private var showScoreNeededToHalve : Bool = false
+    
+    // unsaved copy of the setting above, so it only changes if the user taps Save
+    @State private var showScoreNeededToHalveEdit : Bool = false
+    
+    // turning the hint on also turns on halving, since it's meaningless without it.
+    // done in the binding (not onChange) so loading the saved value doesn't trigger it
+    private var showScoreNeededToHalveBinding : Binding<Bool> {
+        Binding {
+            showScoreNeededToHalveEdit
+        } set: { newValue in
+            showScoreNeededToHalveEdit = newValue
+            if newValue {
+                halving = true
+            }
+        }
+    }
+    
     var body: some View {
         
         NavigationStack {
@@ -64,12 +82,8 @@ struct EditGameSheet: View {
                         Toggle("Lowest score wins", isOn: $lowestWins)
                         
                         Toggle("Halving", isOn: $halving)
-                            .onChange(of: halving) { oldValue, newValue in
-                                for player in game.players {
-                                    viewModel.recalculateScores(player: player, halving: newValue)
-                                }
-                                
-                            }
+                        
+                        Toggle("Show score needed to half", isOn: showScoreNeededToHalveBinding)
                         
                     }
                     .padding(.bottom, 20)
@@ -170,6 +184,14 @@ struct EditGameSheet: View {
                             Button {
                                 game.name = gameName
                                 game.lowestWins = lowestWins
+                                // scores are only re-worked on save, so Cancel leaves them untouched
+                                if game.halving != halving {
+                                    game.halving = halving
+                                    for player in game.players {
+                                        viewModel.recalculateScores(player: player, halving: halving)
+                                    }
+                                }
+                                showScoreNeededToHalve = showScoreNeededToHalveEdit
                                 
                                 if !viewModel.gameNames.contains(gameName) {
                                     viewModel.gameNames.append(gameName)
@@ -195,6 +217,14 @@ struct EditGameSheet: View {
                 } // end of the VStack container
                 .padding(.horizontal, 30)
                 .padding(.top, 40)
+                // start from the game's saved settings, discarding any unsaved
+                // edits from a previous cancelled or swiped-away visit
+                .onAppear {
+                    gameName = game.name ?? ""
+                    lowestWins = game.lowestWins
+                    halving = game.halving
+                    showScoreNeededToHalveEdit = showScoreNeededToHalve
+                }
                 
             // } // end of ScrollView
             

@@ -73,7 +73,7 @@ struct GameView: View {
                     .tag(GameTab.scoresGridTab)
                         
                     ScrollView {
-                        Leaderboard(game: game)
+                        Leaderboard(game: game, isZoomed: isZoomed)
                             // .frame(width: 350)
                             .padding(.top, 10)
                     }
