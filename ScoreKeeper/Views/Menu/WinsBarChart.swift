@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Charts
 
 struct WinsBarChart: View {
     
@@ -16,41 +15,105 @@ struct WinsBarChart: View {
     @Query var games : [Game]
     
     @State var gameName : String = "All Games"
+    @State var showPlayersWithoutWins : Bool = false
     
     var body: some View {
         
-        let data = games.getWinners(gameName: gameName)
-        let gameNames = viewModel.gameNames
+        let summary = games.winsSummary(gameName: gameName)
+        let allPlayers = summary.players
+        let data = showPlayersWithoutWins ? allPlayers : allPlayers.filter { $0.wins > 0 }
+        let gamesPlayed = summary.gamesPlayed
+        let draws = summary.draws
         
-        VStack {
-             
-            Spacer()
+        ScrollView {
             
-            if data.isEmpty {
-                Text("No data")
-                    .foregroundStyle(.gray)
-            } else {
-                Chart(data, id: \.name) {
-                    BarMark(
-                        x: .value("Name", $0.name),
-                        y: .value("Wins", $0.wins))
-                }
-                .frame(height: 300)
-            }
-            
-            Spacer()
-            
-            Picker("Game", selection: $gameName) {
-                Text("All Games").tag("All Games")
-                ForEach(gameNames.indices, id: \.self) { index in
-                    Text(gameNames[index]).tag(gameNames[index])
+            VStack(alignment: .leading, spacing: 28) {
+                
+                // game filter
+                Menu {
+                    Picker("Game", selection: $gameName) {
+                        Text("All Games").tag("All Games")
+                        ForEach(viewModel.gameNames.sorted(), id: \.self) { name in
+                            Text(name).tag(name)
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(gameName)
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .font(.headline)
                 }
                 
+                // headline number
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(gamesPlayed, format: .number)
+                        .font(.system(size: 44, weight: .semibold, design: .rounded))
+                    Text(gamesPlayed == 1 ? "game played" : "games played")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                
+                // wins per player, most wins first
+                if data.isEmpty {
+                    VStack(spacing: 4) {
+                        Text(allPlayers.isEmpty ? "No games yet" : "No wins yet")
+                            .foregroundStyle(.secondary)
+                        if !allPlayers.isEmpty && draws > 0 {
+                            Text(draws == 1 ? "1 draw" : "\(draws) draws")
+                                .font(.footnote)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 120)
+                } else {
+                    let mostWins = max(1, data.map(\.wins).max() ?? 0)
+                    
+                    VStack(spacing: 18) {
+                        ForEach(data, id: \.name) { player in
+                            VStack(spacing: 6) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text(player.name)
+                                    Spacer()
+                                    Text(player.wins, format: .number)
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
+                                }
+                                // bar length is relative to the player with the most wins
+                                Capsule()
+                                    .fill(Color.secondary.opacity(0.12))
+                                    .frame(height: 8)
+                                    .overlay(alignment: .leading) {
+                                        GeometryReader { proxy in
+                                            Capsule()
+                                                .fill(Color.accentColor)
+                                                .frame(width: proxy.size.width * CGFloat(player.wins) / CGFloat(mostWins))
+                                        }
+                                    }
+                            }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("\(player.name), \(player.wins) \(player.wins == 1 ? "win" : "wins")")
+                        }
+                    }
+                }
+                
+                Divider()
+                
+                HStack {
+                    Text("Show players with no wins")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    // only this change animates (rows sliding in and out); changing
+                    // the game swaps the list instantly, which keeps it responsive
+                    Toggle("Show players with no wins", isOn: $showPlayersWithoutWins.animation(.snappy))
+                        .labelsHidden()
+                }
             }
-            .pickerStyle(.menu)
+            .padding(24)
         }
-        .padding()
-        .navigationTitle("Game History Statistics")
+        .navigationTitle("Wins")
         
     }
     
@@ -58,45 +121,41 @@ struct WinsBarChart: View {
 
 extension Array where Element == Game {
     
-    func getWinners(gameName: String) -> [(name: String, wins: Int)] {
+    // wins per player, games played and draws for one game name (or "All Games"),
+    // worked out in a single pass so each game's winners are only found once.
+    // only games with at least two players and one round played are counted.
+    func winsSummary(gameName: String) -> (players: [(name: String, wins: Int)], gamesPlayed: Int, draws: Int) {
         
-        var gamesWithCorrectName : [Game] = []
+        var wins : [String: Int] = [:]
+        var gamesPlayed = 0
+        var draws = 0
         
-        if gameName != "All Games" {
-            // get array of winner names in this game
-            gamesWithCorrectName = self.filter( {$0.name == gameName} )
-        } else {
-            gamesWithCorrectName = self
-        }
-        
-        var players : [String] = []
-        var winners: [String] = []
-        
-        for game in gamesWithCorrectName {
+        for game in self {
+            guard gameName == "All Games" || game.name == gameName else { continue }
+            guard game.players.count > 1 && game.roundsPlayed > 0 else { continue }
             
+            gamesPlayed += 1
+            
+            // everyone who played appears, even without a win
             for player in game.players {
-                if !players.contains(player.name) {
-                    players.append(player.name)
-                }
+                wins[player.name, default: 0] += 0
             }
             
-            if game.winners.count == 1 && game.players.count > 1 {
-                winners.append(game.winners.first!.name)
+            // a shared top score is a draw, not a win
+            let winners = game.winners
+            if winners.count == 1 {
+                wins[winners[0].name, default: 0] += 1
+            } else {
+                draws += 1
             }
         }
         
-        var winnersTupleArray : [(name: String, wins: Int)] = []
+        // most wins first, ties in alphabetical order
+        let players = wins
+            .map { (name: $0.key, wins: $0.value) }
+            .sorted { $0.wins != $1.wins ? $0.wins > $1.wins : $0.name < $1.name }
         
-        for name in players {
-            let wins = winners.filter( {$0 == name} ).count
-            winnersTupleArray.append(
-                (name: name, wins: wins)
-            )
-        }
-        
-        let sortedWinners = winnersTupleArray.sorted { $0.wins < $1.wins }
-        
-        return sortedWinners
+        return (players, gamesPlayed, draws)
     }
 }
 
