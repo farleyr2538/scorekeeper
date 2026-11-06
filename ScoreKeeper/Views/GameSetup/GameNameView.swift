@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct GameNameView: View {
     
@@ -17,7 +18,29 @@ struct GameNameView: View {
     
     @FocusState private var isFocussed : Bool
     
-    var pickerOptions : [String] { viewModel.gameNames }
+    @Query private var games : [Game]
+    
+    // game names, most-played first. sorted once (and again if the games or names
+    // change) rather than on every keystroke in the name field
+    @State private var pickerOptions : [String] = []
+    
+    // most-played games first (counted from saved games), ties in alphabetical order
+    func sortedGameNames() -> [String] {
+        var timesPlayed : [String: Int] = [:]
+        for game in games {
+            if let name = game.name {
+                timesPlayed[name, default: 0] += 1
+            }
+        }
+        return viewModel.gameNames.sorted { name1, name2 in
+            let count1 = timesPlayed[name1] ?? 0
+            let count2 = timesPlayed[name2] ?? 0
+            if count1 != count2 {
+                return count1 > count2
+            }
+            return name1.localizedCaseInsensitiveCompare(name2) == .orderedAscending
+        }
+    }
     
     var filteredOptions : [String] {
          if gameName.isEmpty {
@@ -107,9 +130,19 @@ struct GameNameView: View {
                 }
             }
             .padding(.bottom, isExpanded ? 5 : 0)
-            .background(.white.opacity(0.05))
+            // same colour as the text field, so the options read as its drop-down
+            .background(Color.darkAndLight)
             .clipShape(RoundedRectangle(cornerRadius: 15.0))
             
+        }
+        .onAppear {
+            pickerOptions = sortedGameNames()
+        }
+        .onChange(of: games.count) {
+            pickerOptions = sortedGameNames()
+        }
+        .onChange(of: viewModel.gameNames) {
+            pickerOptions = sortedGameNames()
         }
         .onChange(of: gameName) {
             if filteredOptions.isEmpty {
