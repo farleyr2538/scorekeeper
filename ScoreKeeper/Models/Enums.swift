@@ -26,4 +26,5 @@ enum GameTab {
     case scoresGridTab
     case leaderboardTab
     case chartTab
+    case statsTab
 }

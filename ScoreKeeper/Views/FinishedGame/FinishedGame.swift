@@ -45,10 +45,11 @@ struct FinishedGame: View {
                         .padding(.top, topPadding)
                         ScoreChart(game: game)
                         
-                        Text("Player averages")
+                        // the same stats as the in-game Stats tab
+                        Text("Stats")
                             .font(.title2)
                             .padding(.top, topPadding)
-                        AveragesView(game: game)
+                        GameStats(game: game, embedded: true)
 
                     }
                     .frame(maxWidth: 400)
@@ -75,16 +76,16 @@ struct FinishedGame: View {
             .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
             
             
+            // going back to resume the game is done with the navigation bar's back button
             NavigationLink {
                 ContentView()
                     .navigationBarBackButtonHidden()
             } label: {
-                HStack {
-                    Spacer()
-                    FullWidthButton(text: "Home")
-                    Spacer()
-                }
-            }            
+                FullWidthButton(text: "Home")
+            }
+            .frame(maxWidth: 350)
+            .padding(.horizontal, 15)
+            .padding(.top, 20)
         }
     }
 }

@@ -119,7 +119,11 @@ struct GameView: View {
                     }
                     .navigationTitle("Progress Chart")
                     .tag(GameTab.chartTab)
-                        
+                    
+                    GameStats(game: game)
+                        .navigationTitle("Stats")
+                        .tag(GameTab.statsTab)
+
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                 // large titles sit in the same row as the toolbar buttons, rather than below them
