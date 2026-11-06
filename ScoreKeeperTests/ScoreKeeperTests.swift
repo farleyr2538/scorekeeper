@@ -6,6 +6,7 @@
 //
 
 import Testing
+import Observation
 @testable import ScoreKeeper
 
         
@@ -192,5 +193,88 @@ struct AveragedInStartingScoreTests {
         viewModel.adjustStartingScoreIndexes(game: game, deletedRoundIndexes: [2])
 
         #expect(player.startingScoreRoundIndex == nil)
+    }
+}
+
+@Suite("Progress chart keeps up with new rounds")
+@MainActor
+struct ScoreChartTests {
+
+    let viewModel = ViewModel()
+
+    // The game from the bug report: four players, six rounds, halving on. The
+    // chart froze after round 2 and never showed rounds 3 to 6.
+    let playerNames = ["Flora", "Vnesh", "Kate", "Rob"]
+    let rounds: [[String]] = [
+        ["21", "0", "21", "14"],
+        ["8", "14", "0", "21"],
+        ["18", "6", "0", "3"],
+        ["17", "0", "13", "21"],
+        ["4", "31", "2", "1"],
+        ["4", "32", "2", "11"]
+    ]
+
+    func makeGame() -> Game {
+        let players = playerNames.map { Player(name: $0, scores: [], runningScores: []) }
+        return Game(players: players, halving: true)
+    }
+
+    // add a round the same way NewRoundSheet does
+    func addRound(_ scores: [String], to game: Game) throws {
+        try viewModel.addRound(scores: scores, game: game, indexOfNegativeNumbers: [])
+        game.roundsPlayed += 1
+    }
+
+    // the chart's running totals for one player, from round 0 onwards
+    func plottedScores(for name: String, in chart: ScoreChart) -> [Double] {
+        chart.chartPoints
+            .filter { $0.playerName == name }
+            .sorted { $0.round < $1.round }
+            .map(\.score)
+    }
+
+    @Test func chartPlotsEveryRoundOfTheReportedGame() throws {
+        let game = makeGame()
+        let chart = ScoreChart(game: game)
+
+        for (index, round) in rounds.enumerated() {
+            try addRound(round, to: game)
+
+            // round 0 plus every round played so far, for every player
+            for name in playerNames {
+                #expect(plottedScores(for: name, in: chart).count == index + 2)
+            }
+        }
+
+        #expect(plottedScores(for: "Flora", in: chart) == [0, 21, 29, 47, 64, 68, 72])
+        #expect(plottedScores(for: "Vnesh", in: chart) == [0, 0, 14, 20, 20, 51, 83])
+        #expect(plottedScores(for: "Kate", in: chart) == [0, 21, 21, 21, 34, 36, 38])
+        #expect(plottedScores(for: "Rob", in: chart) == [0, 14, 35, 38, 59, 60, 71])
+    }
+
+    // The root cause: the chart read runningScores somewhere SwiftUI couldn't
+    // see, so adding a round never told it to redraw. Reading chartPoints must
+    // register a dependency that fires when the next round goes in.
+    @Test func addingARoundAfterRoundTwoInvalidatesTheChart() throws {
+        let game = makeGame()
+        let chart = ScoreChart(game: game)
+
+        try addRound(rounds[0], to: game)
+        try addRound(rounds[1], to: game)
+
+        // onChange is a Sendable closure, so it flips a flag on a reference type
+        final class Flag: @unchecked Sendable { var isSet = false }
+        let chartInvalidated = Flag()
+
+        withObservationTracking {
+            _ = chart.chartPoints
+        } onChange: {
+            chartInvalidated.isSet = true
+        }
+
+        try addRound(rounds[2], to: game)
+
+        #expect(chartInvalidated.isSet)
+        #expect(plottedScores(for: "Flora", in: chart) == [0, 21, 29, 47])
     }
 }

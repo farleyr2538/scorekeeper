@@ -34,6 +34,9 @@ struct GameView: View {
     @State var selectedRounds : [Int] = []
     
     @State var selectedTab : GameTab = .scoresGridTab
+
+    // whether the chart page has been built yet (see the chart page below)
+    @State private var chartPageReady : Bool = false
     
     @State var isZoomed : Bool = false
     
@@ -87,16 +90,28 @@ struct GameView: View {
                     }
                     
                     VStack {
-                        ScoreChart(game: game)
-                            .navigationTitle("Progress Chart")
-                            .padding()
+                        // The page view builds the next page in advance, so
+                        // without this the chart would be built mid-swipe from
+                        // Scores to Leaderboard, making that swipe stutter.
+                        // Instead it's built once Leaderboard has been reached.
+                        if chartPageReady {
+                            ScoreChart(game: game)
+                                .padding()
+                        }
                         Spacer()
                     }
+                    .navigationTitle("Progress Chart")
                     .tag(GameTab.chartTab)
                         
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                 .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+                // once off the Scores page, build the chart page, and keep it
+                .onChange(of: selectedTab) {
+                    if selectedTab != .scoresGridTab {
+                        chartPageReady = true
+                    }
+                }
                 
             }
             
