@@ -43,6 +43,9 @@ struct GameView: View {
     
     @State var isZoomed : Bool = false
     
+    // scores tab: show running totals instead of individual round scores
+    @State var showRunningTotals : Bool = false
+    
     // error handling
     @State var isError : Bool = false
     @State var errorMessage : String = ""
@@ -67,11 +70,22 @@ struct GameView: View {
                         roundIndex: $roundIndex,
                         editRoundSheetShowing: $editRoundSheetShowing,
                         markPracticeRounds: $markPracticeRounds,
-                        selectedRounds: $selectedRounds
+                        selectedRounds: $selectedRounds,
+                        showRunningTotals: showRunningTotals
                     )
-                    .navigationTitle("Scores")
+                    .navigationTitle(showRunningTotals && !markPracticeRounds ? "Running Totals" : "Scores")
                     .tag(GameTab.scoresGridTab)
-                        
+                    .toolbar {
+                        if !markPracticeRounds {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Toggle(isOn: $showRunningTotals.animation()) {
+                                    Label("Running totals", systemImage: "sum")
+                                }
+                                .toggleStyle(.button)
+                            }
+                        }
+                    }
+
                     ScrollView {
                         Leaderboard(game: game, isZoomed: isZoomed)
                             // .frame(width: 350)

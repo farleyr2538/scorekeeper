@@ -21,6 +21,9 @@ struct ScoresGrid: View {
     
     @Binding var selectedRounds : [Int]
     
+    // show each player's running total after every round, rather than each round's score
+    var showRunningTotals : Bool = false
+    
     @AppStorage(SettingsKey.highlightZeros) private var highlightZeros : Bool = true
     @State var deleteRoundAlert : Bool = false
         
@@ -58,7 +61,10 @@ struct ScoresGrid: View {
         
         let winners = game.winners
         
-        let maxRounds = game.players.map { $0.scores.count }.max() ?? 0
+        // running totals aren't shown while selecting rounds to delete
+        let showingRunningTotals = showRunningTotals && !markPracticeRounds
+        
+        let maxRounds = game.players.map { showingRunningTotals ? $0.runningScores.count : $0.scores.count }.max() ?? 0
         
         let maxFilteredRounds = game.players.map { $0.filteredScores.count }.max() ?? 0
         
@@ -131,7 +137,25 @@ struct ScoresGrid: View {
                             // for each player
                             ForEach(game.players) { player in
                                 
-                                if !markPracticeRounds {
+                                if showingRunningTotals {
+                                    
+                                    // one running total per round (already halved where needed)
+                                    let runningScores = player.runningScores
+                                    
+                                    Group {
+                                        if index < runningScores.count {
+                                            ScoreNumber(
+                                                score: runningScores[index],
+                                                context: .runningScores,
+                                                roundIndex: index
+                                            )
+                                        } else {
+                                            Text("")
+                                        }
+                                    }
+                                    .gridColumnAlignment(.center)
+                                    
+                                } else if !markPracticeRounds {
                                     
                                     // get their scores array
                                     let playersScores = player.scores
