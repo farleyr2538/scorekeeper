@@ -24,6 +24,9 @@ struct GameView: View {
     @State var deleteRoundAlert : Bool = false
     @State var endGameAlertShowing : Bool = false
     
+    // the Finish button becomes its own confirmation when armed
+    @State var confirmingFinish : Bool = false
+    
     @State var markPracticeRounds : Bool = false
     
     @State var gameName : String = ""
@@ -220,27 +223,65 @@ struct GameView: View {
                     .buttonBorderShape(.capsule)
                     .buttonStyle(.bordered)
                     
-                    NavigationLink {
-                        FinishedGame(game: game)
-                    } label: {
-                        Text("Finish")
-                            .padding(10)
-                            .foregroundStyle(Color.blue)
-                    }
-                    .clipShape(.capsule)
-                    .buttonStyle(.bordered)
-                    .onTapGesture {
-                        do {
-                            try context.save()
-                            print("context saved with end of game")
-                        } catch {
-                            print("failed to save context at end of game")
+                    if confirmingFinish {
+                        
+                        // second tap: actually end the game
+                        NavigationLink {
+                            FinishedGame(game: game)
+                        } label: {
+                            Text("End game?")
+                                .padding(10)
+                                .foregroundStyle(Color.white)
                         }
+                        .clipShape(.capsule)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            do {
+                                try context.save()
+                                print("context saved with end of game")
+                            } catch {
+                                print("failed to save context at end of game")
+                            }
+                        }
+                        
+                    } else {
+                        
+                        // first tap: arm the confirmation in place
+                        Button {
+                            withAnimation {
+                                confirmingFinish = true
+                            }
+                        } label: {
+                            Text("Finish")
+                                .padding(10)
+                                .foregroundStyle(Color.blue)
+                        }
+                        .buttonBorderShape(.capsule)
+                        .buttonStyle(.bordered)
+                        .transition(.opacity)
                     }
                 }
                 .padding(.top, 10)
             }
             .frame(maxWidth: 350)
+            
+            // un-arm the confirmation if it goes unanswered
+            .task(id: confirmingFinish) {
+                guard confirmingFinish else { return }
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled else { return }
+                withAnimation {
+                    confirmingFinish = false
+                }
+            }
+            
+            // back out of the confirmation on the way to the finished game, so
+            // the button reads "Finish" again if the game is re-opened
+            .onDisappear {
+                confirmingFinish = false
+            }
                 
             // new round sheet
             .sheet(isPresented: $newRoundSheetShowing) {
