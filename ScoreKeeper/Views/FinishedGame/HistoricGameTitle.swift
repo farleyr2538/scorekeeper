@@ -13,6 +13,9 @@ struct HistoricGameTitle: View {
     
     var game: Game
     
+    // an in-progress game shows just the name and date, with no winner line
+    var inProgress: Bool = false
+    
     var body: some View {
         
         let title = viewModel.generateGameTitle(game: game)
@@ -30,16 +33,19 @@ struct HistoricGameTitle: View {
             Text(dateString)
                 .foregroundStyle(.gray)
             
-            Group {
-                if game.winners.count == 1 {
-                    Text("Winner: " + game.winners.first!.name)
-                } else if game.winners.count > 1 {
-                    let names = game.winners.map(\.name).joined(separator: " & ")
-                    Text("Joint winners: " + names)
-                        
+            // a game that is still being played has no winner to report
+            if !inProgress {
+                Group {
+                    if game.winners.count == 1 {
+                        Text("Winner: " + game.winners.first!.name)
+                    } else if game.winners.count > 1 {
+                        let names = game.winners.map(\.name).joined(separator: " & ")
+                        Text("Joint winners: " + names)
+                            
+                    }
                 }
+                .foregroundStyle(.gray)
             }
-            .foregroundStyle(.gray)
         }
         
         

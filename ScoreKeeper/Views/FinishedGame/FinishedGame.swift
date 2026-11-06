@@ -31,9 +31,18 @@ struct FinishedGame: View {
                             .padding(.top, topPadding)
                         Leaderboard(game: game)
                         
-                        Text("Game Progress")
-                            .font(.title2)
-                            .padding(.top, topPadding)
+                        // the icon sits right alongside the title, on its
+                        // baseline, so the two read as one unit
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text("Game Progress")
+                                .font(.title2)
+                            // no chart to send if there aren't enough rounds for one
+                            if game.roundsPlayed >= 2 {
+                                ShareChartButton(game: game)
+                            }
+                            Spacer()
+                        }
+                        .padding(.top, topPadding)
                         ScoreChart(game: game)
                         
                         Text("Player averages")
@@ -100,7 +109,8 @@ struct FinishedGame: View {
                     runningScores: [0, 3, 3, 10, 10, 10, 10, 36, 45, 57, 57, 57, 68, 68, 75, 81, 100]
                     )
                 ],
-                halving: true
+                halving: true,
+                roundsPlayed: 17
             )
         )
         .environmentObject(ViewModel())

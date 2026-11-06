@@ -137,6 +137,12 @@ struct GameView: View {
                         }
                     }
                 } else {
+                    // sharing the chart only makes sense while looking at it
+                    if selectedTab == .chartTab && game.roundsPlayed >= 2 {
+                        ToolbarItem {
+                            ShareChartButton(game: game, inProgress: true)
+                        }
+                    }
                     ToolbarItem {
                         Button {
                             editGameSheetShowing = true
