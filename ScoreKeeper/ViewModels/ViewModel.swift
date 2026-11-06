@@ -213,7 +213,7 @@ class ViewModel : ObservableObject {
             var scoresRunningTotal: Double = 0 // cumulative running total
             var newScoresWithHalving: [Double] = [] // individual scores
             
-            for score in scoresWithoutNegatives {
+            for (roundIndex, score) in scoresWithoutNegatives.enumerated() {
                 
                 newScoresWithHalving.append(score) // add new score to list of scores
                 scoresRunningTotal += score // update running total
@@ -223,6 +223,7 @@ class ViewModel : ObservableObject {
                     scoresRunningTotal.truncatingRemainder(dividingBy: 50) == 0
                     && scoresRunningTotal > 0
                     && score > 0
+                    && roundIndex != player.startingScoreRoundIndex // an averaged-in starting score never halves
                 ) {
                     let reductionValue = 0 - (scoresRunningTotal / 2.0)
                     newScoresWithHalving.append(reductionValue)
@@ -239,7 +240,7 @@ class ViewModel : ObservableObject {
         player.runningScores.removeAll()
         var runningTotal: Double = 0
         
-        scoresWithoutNegatives.forEach { score in
+        scoresWithoutNegatives.enumerated().forEach { roundIndex, score in
             
             // add score to running total
             runningTotal += score
@@ -249,11 +250,28 @@ class ViewModel : ObservableObject {
                 halving &&
                 runningTotal > 0 &&
                 score > 0 &&
-                runningTotal.truncatingRemainder(dividingBy: 50) == 0
+                runningTotal.truncatingRemainder(dividingBy: 50) == 0 &&
+                roundIndex != player.startingScoreRoundIndex // an averaged-in starting score never halves
             ) {
                 runningTotal = runningTotal / 2.0
             }
             player.runningScores.append(runningTotal)
+        }
+    }
+    
+    // keep each player's averaged-in round pointing at the right score after rounds are deleted
+    func adjustStartingScoreIndexes(game: Game, deletedRoundIndexes: [Int]) {
+        for player in game.players {
+            guard let joinIndex = player.startingScoreRoundIndex else { continue }
+            
+            if deletedRoundIndexes.contains(joinIndex) {
+                // the averaged-in score itself has been deleted
+                player.startingScoreRoundIndex = nil
+            } else {
+                // shift back by however many deleted rounds came before it
+                let deletedBefore = deletedRoundIndexes.count(where: { $0 < joinIndex })
+                player.startingScoreRoundIndex = joinIndex - deletedBefore
+            }
         }
     }
     
@@ -412,6 +430,14 @@ class ViewModel : ObservableObject {
                 firstScore = getAverageScore(game: game)
             } else {
                 firstScore = 0
+            }
+            
+            // remember the round this player joined on, so that a starting
+            // score landing on a multiple of 50 is never halved - neither now,
+            // nor when the game is later recalculated. A start of 0 can't
+            // trigger a halve, so there is nothing to record.
+            if firstScore > 0 {
+                newPlayer.startingScoreRoundIndex = newPlayer.filteredScores.count
             }
             
             addScore(

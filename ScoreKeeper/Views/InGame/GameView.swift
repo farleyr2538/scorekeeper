@@ -160,6 +160,9 @@ struct GameView: View {
                     // de-increment roundsPlayed by number of rounds deleted
                     game.roundsPlayed -= sortedIndexList.count
                     
+                    // the remaining rounds have shifted, so move any averaged-in rounds with them
+                    viewModel.adjustStartingScoreIndexes(game: game, deletedRoundIndexes: sortedIndexList)
+                    
                     // re-calculate scores and halves etc.
                     for player in game.players {
                         viewModel.recalculateScores(player: player, halving: game.halving)

@@ -10,13 +10,14 @@ import SwiftData
 
 enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV2.self, SchemaV3.self, SchemaV5.self]
+        [SchemaV2.self, SchemaV3.self, SchemaV5.self, SchemaV6.self]
     }
 
     static var stages: [MigrationStage] {
         [
             migrateV2ToV3,
-            migrateV3ToV5
+            migrateV3ToV5,
+            migrateV5ToV6
         ]
     }
 
@@ -40,5 +41,13 @@ enum ScoreKeeperMigrationPlan: SchemaMigrationPlan {
     static let migrateV3ToV5 = MigrationStage.lightweight(
         fromVersion: SchemaV3.self,
         toVersion: SchemaV5.self
+    )
+
+    // V6 only adds Player.startingScoreRoundIndex, an optional with a nil
+    // default, so the mapping is inferable and existing players simply arrive
+    // with no recorded averaged-in round.
+    static let migrateV5ToV6 = MigrationStage.lightweight(
+        fromVersion: SchemaV5.self,
+        toVersion: SchemaV6.self
     )
 }
