@@ -55,6 +55,14 @@ struct ContentView: View {
                     }
                 }
                 
+                ToolbarItem {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
+                
             }
             
             Spacer()

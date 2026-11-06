@@ -13,13 +13,16 @@ struct ScoreNumber: View {
     let context : Context
     let roundIndex : Int
     
+    // passed in by the grid, which reads the setting once for all its cells
+    var highlightZeros : Bool = true
+    
     enum Context {
         case runningScores
         case scores
     }
     
     var shouldHighlightZeros : Bool {
-        if context == .scores && score == 0 && roundIndex != 0 {
+        if highlightZeros && context == .scores && score == 0 && roundIndex != 0 {
             return true
         } else {
             return false

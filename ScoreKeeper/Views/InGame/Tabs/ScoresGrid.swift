@@ -20,6 +20,8 @@ struct ScoresGrid: View {
     @Binding var markPracticeRounds : Bool
     
     @Binding var selectedRounds : [Int]
+    
+    @AppStorage(SettingsKey.highlightZeros) private var highlightZeros : Bool = true
     @State var deleteRoundAlert : Bool = false
         
     var minScore : Double {
@@ -142,7 +144,8 @@ struct ScoresGrid: View {
                                             ScoreNumber(
                                                 score: playersScores[index],
                                                 context: .scores,
-                                                roundIndex: roundIndex
+                                                roundIndex: index,
+                                                highlightZeros: highlightZeros
                                             )
                                             .onTapGesture {
                                                 // playerID: player.id? player index?
@@ -169,7 +172,8 @@ struct ScoresGrid: View {
                                             ScoreNumber(
                                                 score: playersScores[index],
                                                 context: .scores,
-                                                roundIndex: roundIndex
+                                                roundIndex: index,
+                                                highlightZeros: highlightZeros
                                             )
                                             
                                         } else {

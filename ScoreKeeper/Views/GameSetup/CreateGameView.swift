@@ -19,6 +19,11 @@ struct CreateGameView: View {
         lowestWins: true
     )
     
+    // the user's default settings for new games (see SettingsView)
+    @AppStorage(SettingsKey.defaultHalving) private var defaultHalving : Bool = true
+    @AppStorage(SettingsKey.defaultLowestWins) private var defaultLowestWins : Bool = true
+    @State private var defaultsApplied = false
+    
     @State var newPlayerSheetShowing : Bool = false
     
     @State var isGameError : gameError?
@@ -127,6 +132,15 @@ struct CreateGameView: View {
                     .onEnded { _ in startButtonPressed = false }
             )
             
+        }
+        
+        // apply the defaults once, when the screen is first shown, so they're
+        // current and don't overwrite any changes made on this screen
+        .onAppear {
+            guard !defaultsApplied else { return }
+            game.halving = defaultHalving
+            game.lowestWins = defaultLowestWins
+            defaultsApplied = true
         }
         
         .navigationDestination(isPresented: $gameStarted) {
