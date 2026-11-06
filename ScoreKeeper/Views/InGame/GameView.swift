@@ -122,6 +122,8 @@ struct GameView: View {
                         
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
+                // large titles sit in the same row as the toolbar buttons, rather than below them
+                .toolbarTitleDisplayMode(.inlineLarge)
                 .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
                 // once off the Scores page, build the chart page, and keep it
                 .onChange(of: selectedTab) {
